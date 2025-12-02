@@ -8,146 +8,84 @@
     <div class="max-w-4xl mx-auto bg-white rounded-[12px] border border-[#E5E7EB] shadow-sm px-10 py-8">
         <h2 class="text-xl font-semibold text-gray-800 mb-6">Edit Ujian</h2>
 
-        {{-- Pesan sukses (kalau mau dipakai setelah update manual) --}}
-        @if(session('success'))
-            <div class="bg-green-100 text-green-700 px-4 py-2 rounded mb-4">
-                {{ session('success') }}
-            </div>
-        @endif
-
         <form action="{{ route('admin.exam.update', $exam->id) }}" method="POST" enctype="multipart/form-data" class="space-y-5">
             @csrf
             @method('PUT')
 
-            {{-- Judul Ujian --}}
+            {{-- Judul --}}
             <div>
                 <label class="block font-medium text-gray-700 mb-1">Judul Ujian</label>
-                <input
-                    type="text"
-                    name="nama_ujian"
+                <input type="text" name="nama_ujian"
                     value="{{ old('nama_ujian', $exam->nama_ujian) }}"
-                    required
-                    class="w-full border border-gray-300 rounded-md px-4 py-3 focus:ring-2 focus:ring-yellow-400 outline-none"
-                >
-                @error('nama_ujian')
-                    <p class="text-sm text-red-500 mt-1">{{ $message }}</p>
-                @enderror
+                    class="w-full border border-gray-300 rounded-md px-4 py-3 focus:ring-2 focus:ring-yellow-400 outline-none" required>
             </div>
 
             {{-- Jumlah Soal --}}
             <div>
                 <label class="block font-medium text-gray-700 mb-1">Jumlah Soal</label>
-                <input
-                    type="number"
-                    name="question_count"
-                    min="1"
+                <input type="number" name="question_count" min="1"
                     value="{{ old('question_count', $exam->question_count) }}"
-                    required
-                    class="w-full border border-gray-300 rounded-md px-4 py-3 focus:ring-2 focus:ring-yellow-400 outline-none"
-                >
-                @error('question_count')
-                    <p class="text-sm text-red-500 mt-1">{{ $message }}</p>
-                @enderror
+                    class="w-full border border-gray-300 rounded-md px-4 py-3 focus:ring-2 focus:ring-yellow-400 outline-none" required>
             </div>
 
-            {{-- Bobot Nilai --}}
+            {{-- Bobot --}}
             <div>
                 <label class="block font-medium text-gray-700 mb-1">Bobot Nilai</label>
-                <input
-                    type="number"
-                    step="0.01"
-                    name="weight"
+                <input type="number" step="0.01" name="weight"
                     value="{{ old('weight', $exam->weight) }}"
-                    required
-                    class="w-full border border-gray-300 rounded-md px-4 py-3 focus:ring-2 focus:ring-yellow-400 outline-none"
-                >
-                @error('weight')
-                    <p class="text-sm text-red-500 mt-1">{{ $message }}</p>
-                @enderror
+                    class="w-full border border-gray-300 rounded-md px-4 py-3 focus:ring-2 focus:ring-yellow-400 outline-none" required>
             </div>
 
-            {{-- Waktu Ujian --}}
+            {{-- Waktu --}}
             <div>
                 <label class="block font-medium text-gray-700 mb-1">Waktu Ujian (menit)</label>
-                <input
-                    type="number"
-                    name="duration"
-                    min="1"
+                <input type="number" name="duration" min="1"
                     value="{{ old('duration', $exam->duration) }}"
-                    required
-                    class="w-full border border-gray-300 rounded-md px-4 py-3 focus:ring-2 focus:ring-yellow-400 outline-none"
-                >
-                @error('duration')
-                    <p class="text-sm text-red-500 mt-1">{{ $message }}</p>
-                @enderror
+                    class="w-full border border-gray-300 rounded-md px-4 py-3 focus:ring-2 focus:ring-yellow-400 outline-none" required>
             </div>
 
-            {{-- Tipe Ujian --}}
+            {{-- 🔥 Tipe Ujian - sudah FIX --}}
             <div>
                 <label class="block font-medium text-gray-700 mb-1">Tipe Ujian</label>
-                <select
-                    name="exam_type"
-                    required
-                    class="w-full border border-gray-300 rounded-md px-4 py-3 focus:ring-2 focus:ring-yellow-400 outline-none"
-                >
+                <select name="exam_type" required
+                    class="w-full border border-gray-300 rounded-md px-4 py-3 focus:ring-2 focus:ring-yellow-400 outline-none">
+                    
                     <option value="tpa" {{ old('exam_type', $exam->exam_type) == 'tpa' ? 'selected' : '' }}>TPA</option>
                     <option value="cbt" {{ old('exam_type', $exam->exam_type) == 'cbt' ? 'selected' : '' }}>CBT</option>
                 </select>
+
                 @error('exam_type')
                     <p class="text-sm text-red-500 mt-1">{{ $message }}</p>
                 @enderror
             </div>
 
-            {{-- Tanggal Ujian --}}
+            {{-- Tanggal --}}
             <div>
                 <label class="block font-medium text-gray-700 mb-1">Tanggal Ujian</label>
-                <input
-                    type="date"
-                    name="exam_date"
+                <input type="date" name="exam_date"
                     value="{{ old('exam_date', $exam->exam_date) }}"
-                    required
-                    class="w-full border border-gray-300 rounded-md px-4 py-3 focus:ring-2 focus:ring-yellow-400 outline-none"
-                >
-                @error('exam_date')
-                    <p class="text-sm text-red-500 mt-1">{{ $message }}</p>
-                @enderror
+                    class="w-full border border-gray-300 rounded-md px-4 py-3 focus:ring-2 focus:ring-yellow-400 outline-none" required>
             </div>
 
-            {{-- Logo Ujian --}}
+            {{-- Logo --}}
             <div>
                 <label class="block font-medium text-gray-700 mb-1">Masukkan Logo</label>
+                <input type="file" name="logo" accept="image/*" class="block">
 
-                {{-- file input --}}
-                <input
-                    type="file"
-                    name="logo"
-                    accept=".jpg,.jpeg,.png"
-                    class="block w-full text-sm text-gray-700 mb-2"
-                >
-
-                {{-- preview logo lama (kalau ada) --}}
                 @if($exam->logo)
-                    <p class="text-sm text-gray-500 mb-1">Logo saat ini:</p>
-                    <img src="{{ asset('storage/'.$exam->logo) }}" alt="Logo ujian" class="h-12 object-contain mb-2">
+                    <img src="{{ asset('storage/'.$exam->logo) }}" class="h-14 mt-2">
                 @endif
-
-                @error('logo')
-                    <p class="text-sm text-red-500 mt-1">{{ $message }}</p>
-                @enderror
             </div>
 
             {{-- Tombol --}}
             <div class="flex justify-end gap-4 pt-4">
                 <a href="{{ route('admin.exam.index') }}"
-                   class="px-6 py-3 bg-red-500 hover:bg-red-600 text-white font-medium rounded-md shadow-sm">
-                    Batal
-                </a>
+                   class="px-6 py-3 bg-red-500 text-white rounded-md hover:bg-red-600">Batal</a>
 
                 <button type="submit"
-                        class="px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-md shadow-sm">
-                    Simpan
-                </button>
+                    class="px-6 py-3 bg-blue-500 text-white rounded-md hover:bg-blue-600">Simpan</button>
             </div>
+
         </form>
     </div>
 </div>
