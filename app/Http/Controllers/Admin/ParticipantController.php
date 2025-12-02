@@ -25,34 +25,33 @@ class ParticipantController extends Controller
     }
 
     // Store a new participant
-public function store(Request $request)
-{
-    $request->validate([
-        'name' => 'required|string|max:255',
-        'email' => 'required|email|unique:users,email',
-        'password' => 'required|min:6|confirmed',
-    ]);
+    public function store(Request $request)
+    {
+        $request->validate([
+            'name'     => 'required|string|max:255',
+            'email'    => 'required|email|unique:users,email',
+            'password' => 'required|min:6',   // <-- sudah diperbaiki (hapus confirmed)
+        ]);
 
-    // 1. Simpan user dulu
-    $user = User::create([
-        'name' => $request->name,
-        'email' => $request->email,
-        'password' => Hash::make($request->password),
-        'role' => 'peserta',
-    ]);
+        // 1. Simpan user
+        $user = User::create([
+            'name'     => $request->name,
+            'email'    => $request->email,
+            'password' => Hash::make($request->password),
+            'role'     => 'peserta',
+        ]);
 
-    // 2. Buat detail peserta
-    Participant::create([
-        'user_id' => $user->id,
-        'total_score' => 0,
-        'exam_taken' => null,
-        'status' => 'gagal',
-    ]);
+        // 2. Simpan peserta detail
+        Participant::create([
+            'user_id'     => $user->id,
+            'total_score' => 0,
+            'exam_taken'  => null,
+            'status'      => 'gagal',
+        ]);
 
-    return redirect()->route('admin.participants.index')
-        ->with('success', 'Peserta berhasil ditambahkan!');
-}
-
+        return redirect()->route('admin.participants.index')
+                         ->with('success', 'Peserta berhasil ditambahkan!');
+    }
 
     // Show the form for editing an existing participant
     public function edit($id)
@@ -67,12 +66,12 @@ public function store(Request $request)
         $participant = User::where('role', 'peserta')->where('id', $id)->firstOrFail();
 
         $request->validate([
-            'name' => 'required|string|max:255',
+            'name'  => 'required|string|max:255',
             'email' => "required|email|unique:users,email,$id",
         ]);
 
         $participant->update([
-            'name' => $request->name,
+            'name'  => $request->name,
             'email' => $request->email,
         ]);
 
@@ -85,10 +84,10 @@ public function store(Request $request)
     {
         $participant = User::where('role', 'peserta')->where('id', $id)->firstOrFail();
 
-        // Hapus user akan otomatis menghapus participant (jika foreign key cascade)
+        // Hapus user
         $participant->delete();
 
         return redirect()->route('admin.participants.index')
-                        ->with('success', 'Peserta berhasil dihapus!');
+                         ->with('success', 'Peserta berhasil dihapus!');
     }
 }
