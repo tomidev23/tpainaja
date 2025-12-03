@@ -4,6 +4,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ExamController;
+use App\Http\Controllers\Api\ExamMonitoringController;
+use App\Http\Controllers\Api\SecurityController;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -49,4 +52,32 @@ Route::get('/', function () {
         'version' => '1.0.0',
         'status' => 'active',
     ]);
+});
+
+Route::middleware('auth:sanctum')->group(function () {
+    
+    // Exam monitoring routes
+    Route::prefix('monitoring')->group(function () {
+        Route::post('/start', [ExamMonitoringController::class, 'startMonitoring']);
+        Route::put('/{monitoringId}', [ExamMonitoringController::class, 'updateMonitoring']);
+        Route::post('/{monitoringId}/finish', [ExamMonitoringController::class, 'finishMonitoring']);
+        Route::get('/{monitoringId}', [ExamMonitoringController::class, 'getMonitoring']);
+        Route::get('/exam/{examId}', [ExamMonitoringController::class, 'getExamMonitoring']);
+    });
+});
+
+// Security routes
+Route::middleware('auth:sanctum')->group(function () {
+    // 🔐 Keamanan profil
+    Route::get('/security/status', [SecurityController::class, 'status']);
+    Route::post('/security/2fa/enable', [SecurityController::class, 'enable2FA']);
+    Route::post('/security/2fa/disable', [SecurityController::class, 'disable2FA']);
+    Route::post('/security/2fa/verify', [SecurityController::class, 'verify2FA']); // saat setup
+    Route::post('/security/logout-other-devices', [SecurityController::class, 'logoutOtherDevices']);
+
+    // 🔑 Ubah password (dari Ubahpasswordscreen)
+    Route::post('/change-password', [SecurityController::class, 'changePassword']);
+
+    // 👤 Update profil (dari EditProfileScreen)
+    Route::put('/profile', [SecurityController::class, 'updateProfile']);
 });
