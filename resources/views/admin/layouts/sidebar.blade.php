@@ -114,33 +114,35 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <!-- GLOBAL DELETE HANDLER -->
-    <script>
-    document.addEventListener("DOMContentLoaded", function () {
+   <script>
+document.addEventListener("DOMContentLoaded", function () {
 
-        const deleteButtons = document.querySelectorAll(".btn-delete");
+    const saveButtons = document.querySelectorAll(".btn-save");
 
-        deleteButtons.forEach(btn => {
-            btn.addEventListener("click", function () {
-                let form = this.closest("form");
+    saveButtons.forEach(btn => {
+        btn.addEventListener("click", function () {
+            let form = this.closest("form");
 
-                Swal.fire({
-                    title: "Yakin ingin menghapus?",
-                    text: "Data yang dihapus tidak dapat dikembalikan!",
-                    icon: "warning",
-                    showCancelButton: true,
-                    confirmButtonColor: "#d33",
-                    cancelButtonColor: "#3085d6",
-                    confirmButtonText: "Ya, Hapus",
-                    cancelButtonText: "Batal",
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        form.submit();
-                    }
-                });
+            Swal.fire({
+                title: "Anda yakin?",
+                text: "Data akan disimpan ke dalam sistem!",
+                icon: "question",
+                showCancelButton: true,
+                confirmButtonColor: "#3085d6",
+                cancelButtonColor: "#d33",
+                confirmButtonText: "Ya, Simpan",
+                cancelButtonText: "Batal"
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    form.submit();
+                }
             });
         });
     });
-    </script>
+
+});
+</script>
+
 
     @if(session('success'))
 <script>

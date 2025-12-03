@@ -125,10 +125,10 @@
                    class="px-6 py-3 bg-red-500 hover:bg-red-600 text-white font-medium rounded-md shadow-sm">
                     Batal
                 </a>
-                <button type="submit"
-                        class="px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-md shadow-sm">
-                    Simpan
-                </button>
+              <button type="button" class="btn-save px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-md shadow">
+    Simpan
+</button>
+
             </div>
         </form>
     </div>

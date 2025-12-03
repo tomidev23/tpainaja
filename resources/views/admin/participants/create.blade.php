@@ -63,11 +63,10 @@
                         Batal
                     </a>
 
-                    <button 
-                        type="submit"
-                        class="bg-blue-500 text-white font-medium px-6 py-3 rounded-md hover:bg-blue-600 transition">
-                        Simpan
-                    </button>
+                    <button type="button" class="btn-save bg-blue-500 text-white px-5 py-2 rounded-md hover:bg-blue-600 transition">
+    Simpan
+</button>
+
                 </div>
 
             </form>
