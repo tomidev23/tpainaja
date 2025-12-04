@@ -74,6 +74,7 @@ public function getQuestions($examId)
                 'id' => $exam->id,
                 'title' => $exam->title,
                 'duration' => $exam->duration,
+                'exam_type'=> $exam->exam_type,
             ],
             'questions' => $questions,  // Pastikan selalu berupa array
         ],
@@ -97,7 +98,7 @@ public function getQuestions($examId)
             'exam_id' => 'required|exists:exams,id',
             'answers' => 'required|array',
             'answers.*.question_id' => 'required|exists:questions,id',
-            'answers.*.chosen_option' => 'required|string|in:A,B,C,D,E',
+            'answers.*.chosen_option' => 'required|string|in:a,b,c,d,option_a,option_b,option_c,option_d',
         ]);
 
         if ($validator->fails()) {

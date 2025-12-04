@@ -8,26 +8,17 @@ use App\Http\Controllers\Api\ExamMonitoringController;
 use App\Http\Controllers\Api\SecurityController;
 
 
-/*
-|--------------------------------------------------------------------------
-| API Routes
-|--------------------------------------------------------------------------
-*/
-
-// =================== PUBLIC ROUTES (No Auth Required) ===================
 
 // Authentication
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/auth/google', [AuthController::class, 'googleLogin']);
 
-// Public exam listings (if you want them public)
-Route::get('/tpa', [ExamController::class, 'index']); // Or create separate TpaController
-Route::get('/cbt', [ExamController::class, 'index']); // Or create separate CbtController
+Route::get('/tpa', [ExamController::class, 'index']); 
+Route::get('/cbt', [ExamController::class, 'index']); 
 Route::get('/exam', [ExamController::class, 'index']);
 Route::get('/exam/{id}', [ExamController::class, 'show']);
 
-// =================== PROTECTED ROUTES (Auth Required) ===================
 
 Route::middleware('auth:sanctum')->group(function () {
     
@@ -68,16 +59,16 @@ Route::middleware('auth:sanctum')->group(function () {
 
 // Security routes
 Route::middleware('auth:sanctum')->group(function () {
-    // 🔐 Keamanan profil
+    //Keamanan profil
     Route::get('/security/status', [SecurityController::class, 'status']);
     Route::post('/security/2fa/enable', [SecurityController::class, 'enable2FA']);
     Route::post('/security/2fa/disable', [SecurityController::class, 'disable2FA']);
     Route::post('/security/2fa/verify', [SecurityController::class, 'verify2FA']); // saat setup
     Route::post('/security/logout-other-devices', [SecurityController::class, 'logoutOtherDevices']);
 
-    // 🔑 Ubah password (dari Ubahpasswordscreen)
+    //Ubah password (dari Ubahpasswordscreen)
     Route::post('/change-password', [SecurityController::class, 'changePassword']);
 
-    // 👤 Update profil (dari EditProfileScreen)
+    //Update profil (dari EditProfileScreen)
     Route::put('/profile', [SecurityController::class, 'updateProfile']);
 });
