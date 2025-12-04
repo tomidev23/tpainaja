@@ -9,17 +9,26 @@ use Illuminate\Support\Facades\Storage;
 
 class ExamController extends Controller
 {
+    // ========================
+    // INDEX
+    // ========================
     public function index()
     {
         $exams = Exam::latest()->get();
         return view('admin.exam.index', compact('exams'));
     }
 
+    // ========================
+    // CREATE
+    // ========================
     public function create()
     {
         return view('admin.exam.create');
     }
 
+    // ========================
+    // STORE
+    // ========================
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -39,18 +48,24 @@ class ExamController extends Controller
         Exam::create($validated);
 
         return redirect()->route('admin.exam.index')
-                         ->with('success','Ujian berhasil ditambahkan!');
+                         ->with('success', 'Ujian berhasil ditambahkan!');
     }
 
+    // ========================
+    // EDIT
+    // ========================
     public function edit($id)
     {
         $exam = Exam::findOrFail($id);
         return view('admin.exam.edit', compact('exam'));
     }
 
+    // ========================
+    // UPDATE
+    // ========================
     public function update(Request $request, $id)
     {
-        // Pastikan input lowercase
+        // Pastikan lower-case supaya validasi cocok
         $request->merge([
             'exam_type' => strtolower($request->exam_type),
         ]);
@@ -67,14 +82,14 @@ class ExamController extends Controller
 
         $exam = Exam::findOrFail($id);
 
+        // Upload logo baru
         if ($request->hasFile('logo')) {
 
-            // Hapus logo lama
             if ($exam->logo && Storage::disk('public')->exists($exam->logo)) {
                 Storage::disk('public')->delete($exam->logo);
             }
 
-            $validated['logo'] = $request->file('logo')->store('logos','public');
+            $validated['logo'] = $request->file('logo')->store('logos', 'public');
         } else {
             $validated['logo'] = $exam->logo;
         }
@@ -85,6 +100,9 @@ class ExamController extends Controller
                          ->with('success', 'Ujian berhasil diperbarui!');
     }
 
+    // ========================
+    // DELETE
+    // ========================
     public function destroy($id)
     {
         $exam = Exam::findOrFail($id);
@@ -98,4 +116,17 @@ class ExamController extends Controller
         return redirect()->route('admin.exam.index')
                          ->with('success', 'Ujian berhasil dihapus!');
     }
+
+    // ========================
+    // ADD SOAL PAGE (WAJIB ADA)
+    // ========================
+   public function questions($id)
+{
+    $exam = Exam::findOrFail($id);
+
+    $questions = \App\Models\Question::where('exam_id', $id)->get();
+
+    return view('admin.questions.index', compact('exam', 'questions'));
+}
+
 }
