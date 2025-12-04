@@ -190,7 +190,7 @@
             icon: 'error',
             title: 'Gagal!',
             text: "{{ session('error') }}",
-            showConfirmButton: true,
+            showConfirmButton: trueee,
         });
     </script>
     @endif
