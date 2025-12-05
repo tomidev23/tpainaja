@@ -203,36 +203,34 @@ public function getQuestions($examId)
     /**
      * Get user's exam history
      */
-    public function getUserHistory(Request $request, $userId)
-    {
-        $user = $request->user();
+  /**
+ * Get current user's exam history
+ */
+public function getUserHistory(Request $request)
+{
+    $user = $request->user(); // ✅ dari token, otomatis
 
-        if ($user->id != $userId) {
-            return response()->json([
-                'message' => 'Unauthorized',
-            ], 403);
-        }
+    $history = HasilTes::with('exam')
+        ->where('user_id', $user->id) // ✅ aman: hanya data milik user ini
+        ->orderBy('submitted_at', 'desc')
+        ->get()
+        ->map(function ($hasil) {
+            return [
+                'id' => $hasil->id,
+                'exam_id' => $hasil->exam_id,
+                'exam_title' => $hasil->exam->title ?? 'Ujian Tanpa Judul',
+                'questions_logo' => $hasil->exam->logo ?? '',
+                'score' => (int) round($hasil->score),
+                'correct_answers' => (int) $hasil->correct_answers,
+                'total_questions' => (int) $hasil->total_questions,
+                'submitted_at' => $hasil->submitted_at?->toIso8601String() ?? '',
+            ];
+        });
 
-        $history = HasilTes::with(['exam.questions'])
-            ->where('user_id', $userId)
-            ->orderBy('submitted_at', 'desc')
-            ->get()
-            ->map(function ($hasil) {
-                return [
-                    'id' => $hasil->id,
-                    'exam_id' => $hasil->exam_id,
-                    'exam_title' => $hasil->exam->title ?? 'N/A',
-                    'questions_logo' => $hasil->exam->questions->first()->logo ?? '',
-                    'score' => $hasil->score,
-                    'correct_answers' => $hasil->correct_answers,
-                    'total_questions' => $hasil->total_questions,
-                    'submitted_at' => $hasil->submitted_at->format('d M Y H:i'),
-                ];
-            });
+    return response()->json([
+        'status' => 'success',
+        'data' => $history,
+    ]);
+}
 
-        return response()->json([
-            'status' => 'success',
-            'data' => $history,
-        ], 200);
-    }
 }

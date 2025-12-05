@@ -32,7 +32,8 @@ Route::middleware('auth:sanctum')->group(function () {
     
     // Hasil ujian endpoints
     Route::get('/hasil-ujian/{hasilTesId}', [ExamController::class, 'getHasilUjian']);
-    Route::get('/user/{userId}/history', [ExamController::class, 'getUserHistory']);
+    Route::get('/user/{userId}/exam-history', [ExamController::class, 'getUserHistory']);
+
     
 });
 
