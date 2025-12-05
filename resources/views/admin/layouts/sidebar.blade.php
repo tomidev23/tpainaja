@@ -26,51 +26,50 @@
     <!-- SIDEBAR -->
     <aside class="w-64 bg-[#FFC920] flex flex-col justify-between py-6 text-gray-800">
         <div>
+            <!-- LOGO -->
             <div class="flex items-center justify-center mb-10">
                 <img src="{{ asset('images/logo-tpainaja.png') }}" alt="TPAinaja Logo" class="w-32 h-auto">
             </div>
 
             <!-- MENU -->
             <nav class="space-y-2 px-4 font-medium">
-
                 <a href="{{ route('admin.dashboard') }}"
-                   :class="{'bg-transparent text-white': activeMenu === 'admin.dashboard'}"
-                   class="flex items-center gap-3 px-4 py-2 rounded-lg transition hover:bg-white/40">
+                   :class="{'bg-white/40 rounded-lg': activeMenu === 'admin.dashboard'}"
+                   class="flex items-center gap-3 px-4 py-2 rounded-lg transition hover:bg-white/30">
                     <i class="fas fa-home w-5 text-center"></i> Dashboard
                 </a>
 
                 <a href="{{ route('admin.exam.index') }}"
-                   :class="{'bg-transparent text-white': activeMenu.startsWith('admin.exam')}"
-                   class="flex items-center gap-3 px-4 py-2 rounded-lg transition hover:bg-white/40">
+                   :class="{'bg-white/40 rounded-lg': activeMenu.startsWith('admin.exam')}"
+                   class="flex items-center gap-3 px-4 py-2 rounded-lg transition hover:bg-white/30">
                     <i class="fas fa-book w-5 text-center"></i> Ujian
                 </a>
 
                 <a href="{{ route('admin.participants.index') }}"
-                   :class="{'bg-transparent text-white': activeMenu === 'admin.participants.index'}"
-                   class="flex items-center gap-3 px-4 py-2 rounded-lg transition hover:bg-white/40">
+                   :class="{'bg-white/40 rounded-lg': activeMenu === 'admin.participants.index'}"
+                   class="flex items-center gap-3 px-4 py-2 rounded-lg transition hover:bg-white/30">
                     <i class="fas fa-users w-5 text-center"></i> Peserta
                 </a>
 
                 <a href="{{ route('admin.staff.index') }}"
-                   :class="{'bg-transparent text-white': activeMenu === 'admin.staff.index'}"
-                   class="flex items-center gap-3 px-4 py-2 rounded-lg transition hover:bg-white/40">
+                   :class="{'bg-white/40 rounded-lg': activeMenu === 'admin.staff.index'}"
+                   class="flex items-center gap-3 px-4 py-2 rounded-lg transition hover:bg-white/30">
                     <i class="fas fa-user-tie w-5 text-center"></i> Staff
                 </a>
 
                 <a href="{{ route('admin.reports.index') }}"
-                   :class="{'bg-transparent text-white': activeMenu === 'admin.reports.index'}"
-                   class="flex items-center gap-3 px-4 py-2 rounded-lg transition hover:bg-white/40">
+                   :class="{'bg-white/40 rounded-lg': activeMenu === 'admin.reports.index'}"
+                   class="flex items-center gap-3 px-4 py-2 rounded-lg transition hover:bg-white/30">
                     <i class="fas fa-file-alt w-5 text-center"></i> Reports
                 </a>
-
             </nav>
         </div>
 
-        <!-- LOGOUT BUTTON -->
+        <!-- LOGOUT -->
         <form action="{{ route('admin.logout') }}" method="POST">
             @csrf
             <button type="submit"
-                    class="text-white bg-red-500 hover:bg-red-600 px-4 py-2 rounded-md w-40 mx-4 font-medium transition">
+                class="text-white bg-red-500 hover:bg-red-600 px-4 py-2 rounded-md w-40 mx-4 font-medium transition">
                 <i class="fas fa-sign-out-alt mr-2"></i> Logout
             </button>
         </form>
@@ -78,8 +77,10 @@
 
     <!-- MAIN CONTENT -->
     <main class="flex-1 flex flex-col overflow-y-auto">
-        <header class="flex items-center justify-between px-8 py-4 bg-white border-b shadow-sm">
-            <h1 class="text-lg font-semibold text-gray-700">@yield('title')</h1>
+
+        <!-- HEADER -->
+        <header class="flex items-center justify-between px-10 py-5 bg-white border-b shadow-sm">
+            <h1 class="text-xl font-semibold text-gray-700">@yield('title')</h1>
 
             <div class="flex items-center space-x-4">
                 <select class="border border-gray-300 rounded-md text-sm px-2 py-1">
@@ -104,8 +105,11 @@
             </div>
         </header>
 
-        <section class="flex-1 p-8 bg-[#F8FAFC]">
-            @yield('content')
+        <!-- FIX: CONTENT CONTAINER (TERPUSAT) -->
+        <section class="flex-1 bg-[#F8FAFC] pt-10 px-10">
+            <div class="max-w-5xl mx-auto">
+                @yield('content')
+            </div>
         </section>
     </main>
 
@@ -114,12 +118,10 @@
     <!-- SweetAlert -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-    <!-- ========== SAVE CONFIRMATION ========= -->
+    <!-- SAVE CONFIRM -->
     <script>
     document.addEventListener("DOMContentLoaded", function () {
-        const saveButtons = document.querySelectorAll(".btn-save");
-
-        saveButtons.forEach(btn => {
+        document.querySelectorAll(".btn-save").forEach(btn => {
             btn.addEventListener("click", function () {
                 let form = this.closest("form");
 
@@ -132,45 +134,35 @@
                     cancelButtonColor: "#d33",
                     confirmButtonText: "Ya, Simpan",
                     cancelButtonText: "Batal"
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        form.submit();
-                    }
-                });
+                }).then((result) => { if (result.isConfirmed) form.submit(); });
             });
         });
     });
     </script>
 
-    <!-- ========== DELETE CONFIRMATION ========= -->
+    <!-- DELETE CONFIRM -->
     <script>
     document.addEventListener("DOMContentLoaded", function () {
-        const deleteButtons = document.querySelectorAll(".btn-delete");
-
-        deleteButtons.forEach(btn => {
+        document.querySelectorAll(".btn-delete").forEach(btn => {
             btn.addEventListener("click", function () {
                 let form = this.closest("form");
 
                 Swal.fire({
                     title: "Hapus data?",
-                    text: "Data yang dihapus tidak bisa dikembalikan!",
+                    text: "Data yang dihapus tidak dapat dikembalikan!",
                     icon: "warning",
                     showCancelButton: true,
                     confirmButtonColor: "#d33",
                     cancelButtonColor: "#3085d6",
                     confirmButtonText: "Ya, Hapus",
-                    cancelButtonText: "Batal",
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        form.submit();
-                    }
-                });
+                    cancelButtonText: "Batal"
+                }).then((result) => { if (result.isConfirmed) form.submit(); });
             });
         });
     });
     </script>
 
-    <!-- SUCCESS ALERT -->
+    <!-- SUCCESS -->
     @if(session('success'))
     <script>
         Swal.fire({
@@ -183,14 +175,13 @@
     </script>
     @endif
 
-    <!-- ERROR ALERT -->
+    <!-- ERROR -->
     @if(session('error'))
     <script>
         Swal.fire({
             icon: 'error',
             title: 'Gagal!',
             text: "{{ session('error') }}",
-            showConfirmButton: true,
         });
     </script>
     @endif

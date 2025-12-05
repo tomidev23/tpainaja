@@ -1,69 +1,75 @@
 @extends('admin.layouts.sidebar')
 
-@section('title', 'Tambah Staf Baru')
+@section('title', 'Tambah Staff')
 
 @section('content')
 
-<form action="{{ route('admin.staff.store') }}" method="POST" class="max-w-lg mx-auto bg-white p-6 rounded-xl shadow-md">
-    @csrf
+<div class="max-w-5xl mx-auto">
 
-    <!-- Name Field -->
-    <div class="mb-4">
-        <label for="name" class="block text-sm font-medium text-gray-700">Nama</label>
-        <input
-            type="text"
-            name="name"
-            id="name"
-            class="w-full border border-gray-300 rounded-md px-3 py-2"
-            value="{{ old('name') }}"
-            required
-        >
-        @error('name')
-            <span class="text-red-500 text-sm">{{ $message }}</span>
-        @enderror
+    {{-- HEADER KUNING --}}
+    <div class="bg-[#F7C948] text-gray-900 font-semibold px-6 py-3 rounded-t-lg w-full">
+        Tambah Staff
     </div>
 
-    <!-- Email Field -->
-    <div class="mb-4">
-        <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
-        <input
-            type="email"
-            name="email"
-            id="email"
-            class="w-full border border-gray-300 rounded-md px-3 py-2"
-            value="{{ old('email') }}"
-            required
-        >
-        @error('email')
-            <span class="text-red-500 text-sm">{{ $message }}</span>
-        @enderror
-    </div>
+    {{-- CARD FORM --}}
+    <div class="bg-white shadow-md rounded-b-lg px-8 py-10 border">
 
-    <!-- Password Field -->
-    <div class="mb-4">
-        <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
-        <input
-            type="password"
-            name="password"
-            id="password"
-            class="w-full border border-gray-300 rounded-md px-3 py-2"
-            required
-        >
-        @error('password')
-            <span class="text-red-500 text-sm">{{ $message }}</span>
-        @enderror
-    </div>
+        <form action="{{ route('admin.staff.store') }}" method="POST">
+            @csrf
 
-    <!-- Submit Button -->
-    <div class="flex justify-end">
-        <button
-            type="submit"
-            class="px-5 py-2 rounded-md bg-[#FACC15] hover:bg-[#EAB308] text-gray-900 font-semibold shadow-sm"
-        >
-            Simpan Staf
-        </button>
-    </div>
+            {{-- NAMA --}}
+            <div class="mb-6">
+                <label class="block text-gray-700 font-semibold mb-1">Nama</label>
+                <input type="text" name="name"
+                       class="w-full border border-gray-300 rounded-md px-4 py-2 focus:ring-2 focus:ring-yellow-400 focus:outline-none"
+                       placeholder="Masukkan nama staff" required>
+                @error('name')
+                    <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                @enderror
+            </div>
 
-</form>
+            {{-- EMAIL --}}
+            <div class="mb-6">
+                <label class="block text-gray-700 font-semibold mb-1">Email</label>
+                <input type="email" name="email"
+                       class="w-full border border-gray-300 rounded-md px-4 py-2 focus:ring-2 focus:ring-yellow-400 focus:outline-none"
+                       placeholder="Masukkan email staff" required>
+                @error('email')
+                    <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                @enderror
+            </div>
+
+            {{-- PASSWORD --}}
+            <div class="mb-8">
+                <label class="block text-gray-700 font-semibold mb-1">Password</label>
+                <input type="password" name="password"
+                       class="w-full border border-gray-300 rounded-md px-4 py-2 focus:ring-2 focus:ring-yellow-400 focus:outline-none"
+                       placeholder="Minimal 6 karakter" required>
+                @error('password')
+                    <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                @enderror
+            </div>
+
+            {{-- BUTTON --}}
+            <div class="flex justify-end gap-4">
+
+                {{-- Tombol Batal --}}
+                <a href="{{ route('admin.staff.index') }}"
+                   class="px-6 py-2 bg-red-500 text-white font-semibold rounded-md shadow hover:bg-red-600 transition">
+                    Batal
+                </a>
+
+                {{-- Tombol Simpan (pakai SweetAlert dari sidebar karena ada class btn-save) --}}
+                <button type="submit"
+                        class="px-6 py-2 bg-blue-500 text-white font-semibold rounded-md shadow hover:bg-blue-600 transition btn-save">
+                    Simpan
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+</div>
 
 @endsection
