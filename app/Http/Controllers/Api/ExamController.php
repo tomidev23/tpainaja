@@ -189,7 +189,7 @@ public function getQuestions($examId)
             'status' => 'success',
             'data' => [
                 'id' => $hasilTes->id,
-                'exam_title' => $hasilTes->exam->title ?? 'No title',
+                'title' => $hasilTes->exam->nama_ujian ?? 'No title',
                 'image' => $hasilTes->exam->questions->first()->logo ?? '', // Check for null
                 'total_questions' => $hasilTes->total_questions,
                 'score' => $hasilTes->score,
@@ -218,7 +218,7 @@ public function getUserHistory(Request $request)
             return [
                 'id' => $hasil->id,
                 'exam_id' => $hasil->exam_id,
-                'exam_title' => $hasil->exam->title ?? 'Ujian Tanpa Judul',
+                'title' => $hasil->exam->nama_ujian ?? 'Ujian Tanpa Judul',
                 'questions_logo' => $hasil->exam->logo ?? '',
                 'score' => (int) round($hasil->score),
                 'correct_answers' => (int) $hasil->correct_answers,
