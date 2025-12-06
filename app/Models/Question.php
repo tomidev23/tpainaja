@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -11,22 +12,12 @@ class Question extends Model
     protected $fillable = [
         'exam_id',
         'question_text',
-        'option_a',   // Opsional jika tetap menggunakan schema sebelumnya
-        'option_b',   // Opsional
-        'option_c',   // Opsional
-        'option_d',   // Opsional
-        'correct_option',
+        'correct_answer',
+        'question_file',
     ];
 
-    // Relasi dengan model Exam
     public function exam()
     {
         return $this->belongsTo(Exam::class);
-    }
-
-    // Relasi dengan model Option
-     public function options()
-    {
-        return $this->hasMany(Option::class);  // Relasi hasMany dengan Option
     }
 }

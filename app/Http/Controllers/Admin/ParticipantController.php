@@ -13,7 +13,7 @@ class ParticipantController extends Controller
     // Display all participants
     public function index()
     {
-        // Fetch all participants from the database
+        // Ambil semua user dengan role peserta
         $participants = User::where('role', 'peserta')->get();
         return view('admin.participants.index', compact('participants'));
     }
@@ -23,60 +23,71 @@ class ParticipantController extends Controller
     {
         return view('admin.participants.create');
     }
+
     // Store a new participant
     public function store(Request $request)
     {
-        // Validate incoming data
         $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:participants,email',  // Unique email validation
-            'password' => 'required|min:6|confirmed',  // Added confirmation for password
+            'name'     => 'required|string|max:255',
+            'email'    => 'required|email|unique:users,email',
+            'password' => 'required|min:6',   // <-- sudah diperbaiki (hapus confirmed)
         ]);
 
-        // Create a new participant
+        // 1. Simpan user
+        $user = User::create([
+            'name'     => $request->name,
+            'email'    => $request->email,
+            'password' => Hash::make($request->password),
+            'role'     => 'peserta',
+        ]);
+
+        // 2. Simpan peserta detail
         Participant::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),  // Hash the password before storing
+            'user_id'     => $user->id,
+            'total_score' => 0,
+            'exam_taken'  => null,
+            'status'      => 'gagal',
         ]);
 
         return redirect()->route('admin.participants.index')
-            ->with('success', 'Peserta berhasil ditambahkan!');
+                         ->with('success', 'Peserta berhasil ditambahkan!');
     }
 
     // Show the form for editing an existing participant
-public function edit($id)
-{
-    // Ambil peserta dengan role 'peserta' berdasarkan ID
-    $participant = User::where('role', 'peserta')->where('id', $id)->firstOrFail();
+    public function edit($id)
+    {
+        $participant = User::where('role', 'peserta')->where('id', $id)->firstOrFail();
+        return view('admin.participants.edit', compact('participant'));
+    }
 
-    // Kirim variable participant ke view
-    return view('admin.participants.edit', compact('participant'));
-}
+    // Update participant info
+    public function update(Request $request, $id)
+    {
+        $participant = User::where('role', 'peserta')->where('id', $id)->firstOrFail();
 
+        $request->validate([
+            'name'  => 'required|string|max:255',
+            'email' => "required|email|unique:users,email,$id",
+        ]);
 
-    // Update the participant's information
-   public function update(Request $request, $id)
-{
-    $participant = User::where('role', 'peserta')->where('id', $id)->firstOrFail();
+        $participant->update([
+            'name'  => $request->name,
+            'email' => $request->email,
+        ]);
 
-    $participant->update([
-        'name' => $request->name,
-        'email' => $request->email,
-    ]);
+        return redirect()->route('admin.participants.index')
+                         ->with('success', 'Peserta berhasil diperbarui');
+    }
 
-    return redirect()->route('admin.participants.index')
-                     ->with('success', 'Peserta berhasil diperbarui');
-}
-
-    // Delete a participant
+    // Delete participant
     public function destroy($id)
     {
-        // Find and delete the participant
         $participant = User::where('role', 'peserta')->where('id', $id)->firstOrFail();
+
+        // Hapus user
         $participant->delete();
 
         return redirect()->route('admin.participants.index')
-            ->with('success', 'Peserta berhasil dihapus!');
+                         ->with('success', 'Peserta berhasil dihapus!');
     }
 }

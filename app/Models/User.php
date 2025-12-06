@@ -43,6 +43,12 @@ class User extends Authenticatable
     {
         return $this->hasMany(HasilTes::class);
     }
+
+    public function examResults()
+{
+    return $this->hasMany(ExamResult::class);
+}
+
     // User model (app/Models/User.php)
 public function delete()
 {

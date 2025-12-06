@@ -3,53 +3,92 @@
 @section('title', 'Staff')
 
 @section('content')
+<div class="px-6 py-4">
 
+    <!-- Header -->
+    <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl font-semibold text-gray-800">Staff</h2>
 
-<!-- Judul + Tombol Tambah Staff -->
-<div class="flex justify-between items-center mb-6 mt-2">
-   
-    <!-- Tombol Tambah Staff -->
-    <a href="{{ route('admin.staff.create') }}" 
-       class="flex items-center gap-2 border border-[#635BFF] text-[#635BFF] font-medium px-4 py-2 rounded-lg hover:bg-[#635BFF] hover:text-white transition">
-        <i class="fas fa-plus"></i>
-        Tambah Staff
-    </a>
-</div>
+        <a href="{{ route('admin.staff.create') }}"
+           class="px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg shadow flex items-center gap-2 transition">
+            <i class="fas fa-plus"></i> Tambah Staff
+        </a>
+    </div>
 
-<!-- Tabel Staff -->
-<div class="bg-white rounded-2xl shadow-md p-6 max-w-5xl mx-auto">
-    <table class="w-full text-left border-collapse">
-        <thead>
-            <tr class="border-b border-gray-300 text-gray-700">
-                <th class="pb-3 font-semibold w-16">No</th>
-                <th class="pb-3 font-semibold">Nama</th>
-                <th class="pb-3 font-semibold">Email</th>
-                <th class="pb-3 font-semibold text-center">Edit</th>
-            </tr>
-        </thead>
-        <tbody>
-    @forelse ($staff as $index => $s)
-        <tr class="border-b border-gray-200 hover:bg-gray-50 transition">
-            <td class="py-3">{{ $index + 1 }}</td>
-            <td class="py-3 font-medium text-gray-800">{{ $s->name }}</td>
-            <td class="py-3 text-gray-600">{{ $s->email }}</td>
+    <!-- List Staff -->
+    <div class="space-y-4">
 
-            <td class="py-3 text-center">
+        @forelse($staff as $s)
+        <div class="w-full bg-white shadow rounded-xl flex items-center justify-between px-6 py-4">
+
+            <!-- Kiri: Nama + Email -->
+            <div class="flex flex-col">
+                <span class="text-lg font-semibold text-gray-800">{{ $s->name }}</span>
+                <span class="text-sm text-gray-500">{{ $s->email }}</span>
+            </div>
+
+            <!-- Tengah: Password Bintang + Icon Mata -->
+            <div class="flex items-center gap-2">
+                <span class="tracking-widest text-gray-600">***********</span>
+                <i class="fas fa-eye-slash text-gray-600 text-sm"></i>
+            </div>
+
+            <!-- Kanan: Tombol Edit + Delete -->
+            <div class="flex items-center gap-3">
+
+                <!-- Edit -->
                 <a href="{{ route('admin.staff.edit', $s->id) }}"
-                    class="text-blue-600 hover:text-blue-800 transition">
+                   class="w-8 h-8 flex items-center justify-center rounded-full bg-yellow-100 text-yellow-600 hover:bg-yellow-200 transition">
                     <i class="fas fa-pen"></i>
                 </a>
-            </td>
-        </tr>
-    @empty
-        <tr>
-            <td colspan="4" class="text-center text-gray-400 italic py-6">
-                Belum ada staff terdaftar.
-            </td>
-        </tr>
-    @endforelse
-</tbody>
 
-    </table>
+                <!-- Delete -->
+                <form action="{{ route('admin.staff.destroy', $s->id) }}" method="POST" class="inline delete-form">
+                    @csrf
+                    @method('DELETE')
+                    <button type="button"
+                        class="w-8 h-8 flex items-center justify-center rounded-full bg-red-100 text-red-600 hover:bg-red-200 transition btn-delete">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </form>
+
+            </div>
+        </div>
+        @empty
+            <p class="text-gray-500 italic text-center py-10">
+                Belum ada staff terdaftar.
+            </p>
+        @endforelse
+
+    </div>
 </div>
+
+<!-- SweetAlert Delete -->
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const deleteButtons = document.querySelectorAll(".btn-delete");
+
+    deleteButtons.forEach(btn => {
+        btn.addEventListener("click", function () {
+            let form = this.closest("form");
+
+            Swal.fire({
+                title: "Anda yakin?",
+                text: "Staff akan dihapus dari sistem!",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#d33",
+                cancelButtonColor: "#3085d6",
+                confirmButtonText: "Ya, Hapus",
+                cancelButtonText: "Batal"
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    form.submit();
+                }
+            });
+        });
+    });
+});
+</script>
+
 @endsection

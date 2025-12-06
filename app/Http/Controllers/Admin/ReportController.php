@@ -3,17 +3,25 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
+use App\Models\ExamResult;
+use App\Models\Exam;
+use App\Models\Participant;
 
 class ReportController extends Controller
 {
+    // HALAMAN REPORT (Menampilkan seluruh hasil ujian)
     public function index()
     {
-        return view('admin.reports.index'); // Halaman daftar report
+        $results = ExamResult::with(['participant.user', 'exam'])->orderBy('id', 'desc')->get();
+
+        return view('admin.reports.index', compact('results'));
     }
 
-    public function create()
+    // DETAIL REPORT PER PESERTA (opsional, jika ingin)
+    public function show($id)
     {
-        return view('admin.reports.create'); // Halaman tambah report
+        $result = ExamResult::with(['participant.user', 'exam'])->findOrFail($id);
+
+        return view('admin.reports.show', compact('result'));
     }
 }

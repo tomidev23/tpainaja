@@ -47,17 +47,19 @@
                        title="Tambah Soal">
                         <i class="fas fa-plus"></i>
                     </a>
-                    <!-- Hapus -->
-                    <form action="{{ route('admin.exam.destroy', $exam->id) }}" method="POST"
-                          onsubmit="return confirm('Yakin ingin menghapus ujian ini?')" class="inline">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit"
-                            class="w-8 h-8 flex items-center justify-center rounded-full bg-red-100 text-red-500 hover:bg-red-200 transition"
-                            title="Hapus Ujian">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </form>
+                  <!-- HAPUS -->
+<form action="{{ route('admin.exam.destroy', $exam->id) }}" method="POST" 
+      class="delete-form inline">
+    @csrf
+    @method('DELETE')
+    <button type="button"
+        class="btn-delete w-8 h-8 flex items-center justify-center rounded-full bg-red-100 text-red-500 hover:bg-red-200 transition"
+        title="Hapus Ujian">
+        <i class="fas fa-times"></i>
+    </button>
+</form>
+
+
                 </div>
             </div>
         @empty
