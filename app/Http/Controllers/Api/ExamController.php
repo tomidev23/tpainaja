@@ -4,13 +4,13 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Exam;
 use App\Models\Question;
-use App\Models\Option;
 use App\Models\HasilTes;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Auth;
-use App\Models\User;
+
 
 class ExamController extends Controller
 {
@@ -84,82 +84,85 @@ public function getQuestions($examId)
     /**
      * Submit exam result
      */
-    public function submitResult(Request $request)
-    {
-        $user = $request->user();
+  public function submitResult(Request $request)
+{
+    $user = $request->user();
 
-        if (!$user) {
-            return response()->json([
-                'message' => 'Unauthenticated',
-            ], 401);
-        }
+    if (!$user) {
+        return response()->json([
+            'message' => 'Unauthenticated',
+        ], 401);
+    }
 
-        $validator = Validator::make($request->all(), [
-            'exam_id' => 'required|exists:exams,id',
-            'answers' => 'required|array',
-            'answers.*.question_id' => 'required|exists:questions,id',
-            'answers.*.chosen_option' => 'required|string|in:a,b,c,d,option_a,option_b,option_c,option_d',
-        ]);
+    $validator = Validator::make($request->all(), [
+        'exam_id' => 'required|exists:exams,id',
+        'answers' => 'required|array',
+        'answers.*.question_id' => 'required|exists:questions,id',
+        'answers.*.chosen_option' => 'required|string|in:a,b,c,d,option_a,option_b,option_c,option_d',
+    ]);
 
-        if ($validator->fails()) {
-            return response()->json([
-                'message' => 'Validation failed',
-                'errors' => $validator->errors(),
-            ], 422);
-        }
+    if ($validator->fails()) {
+        return response()->json([
+            'message' => 'Validation failed',
+            'errors' => $validator->errors(),
+        ], 422);
+    }
 
-        $examId = $request->exam_id;
-        $answers = $request->answers;
+    $examId = $request->exam_id;
+    $answers = $request->answers;
 
-        // Calculate score
-        $totalScore = 0;
-        $correctAnswers = 0;
-        $totalQuestions = count($answers);
+    // Enkripsi jawaban peserta
+    $encryptedAnswers = Crypt::encryptString(json_encode($answers)); // Enkripsi jawaban
 
-        foreach ($answers as $answer) {
-            $question = Question::find($answer['question_id']);
-            
-            if ($question && $question->correct_answer === $answer['chosen_option']) {
-                $correctAnswers++;
-            }
-        }
+    // Hitung skor
+    $totalScore = 0;
+    $correctAnswers = 0;
+    $totalQuestions = count($answers);
 
-        if ($totalQuestions > 0) {
-            $totalScore = round(($correctAnswers / $totalQuestions) * 100, 2);
-        }
-
-        try {
-            $hasilTes = HasilTes::create([
-                'user_id' => $user->id,
-                'exam_id' => $examId,
-                'score' => $totalScore,
-                'correct_answers' => $correctAnswers,
-                'total_questions' => $totalQuestions,
-                'answers' => json_encode($answers), // Store answers as JSON
-                'submitted_at' => now(),
-            ]);
-
-            Log::info('Exam result submitted', [
-                'user_id' => $user->id,
-                'exam_id' => $examId,
-                'score' => $totalScore,
-            ]);
-
-            return response()->json([
-                'message' => 'Exam submitted successfully',
-                'hasil_tes_id' => $hasilTes->id,
-                'score' => $totalScore,
-                'correct_answers' => $correctAnswers,
-                'total_questions' => $totalQuestions,
-            ], 200);
-        } catch (\Exception $e) {
-            Log::error('Error submitting exam result: ' . $e->getMessage());
-
-            return response()->json([
-                'message' => 'Error occurred while saving the exam result',
-            ], 500);
+    foreach ($answers as $answer) {
+        $question = Question::find($answer['question_id']);
+        
+        if ($question && $question->correct_answer === $answer['chosen_option']) {
+            $correctAnswers++;
         }
     }
+
+    if ($totalQuestions > 0) {
+        $totalScore = round(($correctAnswers / $totalQuestions) * 100, 2);
+    }
+
+    try {
+        $hasilTes = HasilTes::create([
+            'user_id' => $user->id,
+            'exam_id' => $examId,
+            'score' => $totalScore,
+            'correct_answers' => $correctAnswers,
+            'total_questions' => $totalQuestions,
+            'answers' => $encryptedAnswers, // Simpan jawaban yang sudah dienkripsi
+            'submitted_at' => now(),
+        ]);
+
+        Log::info('Exam result submitted', [
+            'user_id' => $user->id,
+            'exam_id' => $examId,
+            'score' => $totalScore,
+        ]);
+
+        return response()->json([
+            'message' => 'Exam submitted successfully',
+            'hasil_tes_id' => $hasilTes->id,
+            'score' => $totalScore,
+            'correct_answers' => $correctAnswers,
+            'total_questions' => $totalQuestions,
+        ], 200);
+    } catch (\Exception $e) {
+        Log::error('Error submitting exam result: ' . $e->getMessage());
+
+        return response()->json([
+            'message' => 'Error occurred while saving the exam result',
+        ], 500);
+    }
+}
 
     /**
      * Get exam result detail
