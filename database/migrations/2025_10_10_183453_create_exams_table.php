@@ -13,14 +13,11 @@ return new class extends Migration
     {
         Schema::create('exams', function (Blueprint $table) {
             $table->id();
-            $table->string('nama_ujian'); // Nama ujian
-            $table->integer('question_count')->default(0); // Jumlah soal
-            $table->decimal('weight', 5, 2)->default(100); // Bobot nilai
-            $table->integer('duration')->nullable(); // Durasi ujian (menit)
-            $table->enum('exam_type', ['cbt', 'tpa']); // ← FIX DI SINI
-            $table->string('logo')->nullable(); // Logo ujian
-                        $table->string('exam_date'); // Nama ujian
-
+            $table->string('nama_ujian'); // ✅ Nama ujian
+            $table->integer('jumlah_soal')->default(0); // ✅ Jumlah soal
+            $table->decimal('bobot_nilai', 5, 2)->default(100); // ✅ Bobot nilai
+            $table->integer('waktu_ujian')->nullable(); // ✅ Durasi ujian (menit)
+            $table->string('logo')->nullable(); // ✅ Logo ujian
             $table->timestamps();
         });
     }
