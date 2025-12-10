@@ -4,27 +4,21 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ExamController;
+use App\Http\Controllers\Api\ExamMonitoringController;
+use App\Http\Controllers\Api\SecurityController;
 
-/*
-|--------------------------------------------------------------------------
-| API Routes
-|--------------------------------------------------------------------------
-*/
 
-// =================== PUBLIC ROUTES (No Auth Required) ===================
 
 // Authentication
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/auth/google', [AuthController::class, 'googleLogin']);
 
-// Public exam listings (if you want them public)
-Route::get('/tpa', [ExamController::class, 'index']); // Or create separate TpaController
-Route::get('/cbt', [ExamController::class, 'index']); // Or create separate CbtController
+Route::get('/tpa', [ExamController::class, 'index']); 
+Route::get('/cbt', [ExamController::class, 'index']); 
 Route::get('/exam', [ExamController::class, 'index']);
 Route::get('/exam/{id}', [ExamController::class, 'show']);
 
-// =================== PROTECTED ROUTES (Auth Required) ===================
 
 Route::middleware('auth:sanctum')->group(function () {
     
@@ -38,7 +32,8 @@ Route::middleware('auth:sanctum')->group(function () {
     
     // Hasil ujian endpoints
     Route::get('/hasil-ujian/{hasilTesId}', [ExamController::class, 'getHasilUjian']);
-    Route::get('/user/{userId}/history', [ExamController::class, 'getUserHistory']);
+    Route::get('/exam-history', [ExamController::class, 'getUserHistory']);
+
     
 });
 
@@ -49,4 +44,32 @@ Route::get('/', function () {
         'version' => '1.0.0',
         'status' => 'active',
     ]);
+});
+
+Route::middleware('auth:sanctum')->group(function () {
+    
+    // Exam monitoring routes
+    Route::prefix('monitoring')->group(function () {
+        Route::post('/start', [ExamMonitoringController::class, 'startMonitoring']);
+        Route::put('/{monitoringId}', [ExamMonitoringController::class, 'updateMonitoring']);
+        Route::post('/{monitoringId}/finish', [ExamMonitoringController::class, 'finishMonitoring']);
+        Route::get('/{monitoringId}', [ExamMonitoringController::class, 'getMonitoring']);
+        Route::get('/exam/{examId}', [ExamMonitoringController::class, 'getExamMonitoring']);
+    });
+});
+
+// Security routes
+Route::middleware('auth:sanctum')->group(function () {
+    //Keamanan profil
+    Route::get('/security/status', [SecurityController::class, 'status']);
+    Route::post('/security/2fa/enable', [SecurityController::class, 'enable2FA']);
+    Route::post('/security/2fa/disable', [SecurityController::class, 'disable2FA']);
+    Route::post('/security/2fa/verify', [SecurityController::class, 'verify2FA']); // saat setup
+    Route::post('/security/logout-other-devices', [SecurityController::class, 'logoutOtherDevices']);
+
+    //Ubah password (dari Ubahpasswordscreen)
+    Route::post('/change-password', [SecurityController::class, 'changePassword']);
+
+    //Update profil (dari EditProfileScreen)
+    Route::put('/profile', [SecurityController::class, 'updateProfile']);
 });

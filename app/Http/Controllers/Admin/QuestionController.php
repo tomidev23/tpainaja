@@ -56,7 +56,7 @@ class QuestionController extends Controller
             'option_b' => 'required|string',
             'option_c' => 'required|string',
             'option_d' => 'required|string',
-            'correct_answer' => 'required|in:A,B,C,D',
+            'correct_answer' => 'required|String|in:A,B,C,D',
             'question_file' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
         ]);
     } 

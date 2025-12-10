@@ -129,6 +129,10 @@ return [
     'throttle:api',
     \Illuminate\Routing\Middleware\SubstituteBindings::class,
 ],
+// config/app.php
+'google2fa' => [
+    'issuer' => env('APP_NAME', 'Laravel'),
+],
 
 
 ];
