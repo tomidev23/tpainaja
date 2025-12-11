@@ -15,48 +15,48 @@ class AuthController extends Controller
     /**
      * Register new user
      */
-    public function register(Request $request)
-    {
-        // Validate request data
-        $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:8|confirmed',
-        ]);
+   public function register(Request $request)
+{
+    // Validate request data
+    $validator = Validator::make($request->all(), [
+        'name' => 'required|string|max:255',
+        'email' => 'required|string|email|max:255|unique:users,email',
+        'password' => 'required|string|min:8|confirmed',
+    ]);
 
-        // If validation fails
-        if ($validator->fails()) {
-            return response()->json([
-                'message' => 'Validation failed',
-                'errors' => $validator->errors(),
-            ], 422);
-        }
-
-        // Create a new user
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-        ]);
-
-        // Generate API token for the user
-        $token = $user->createToken('auth_token')->plainTextToken;
-
-        // Log the registration event
-        Log::info('New user registered: ' . $user->email);
-
-        // Return success response with token and user info
+    // If validation fails, return response with errors
+    if ($validator->fails()) {
         return response()->json([
-            'message' => 'Registration successful',
-            'token' => $token,
-            'user' => [
-                'id' => $user->id,
-                'name' => $user->name,
-                'email' => $user->email,
-            ],
-        ], 201);
+            'message' => 'Validation failed',
+            'errors' => $validator->errors(),
+        ], 422);
     }
 
+    // Create a new user with hashed password
+    $user = User::create([
+        'name' => $request->name,
+        'email' => $request->email,
+        'password' => Hash::make($request->password),  // Hash the password before saving
+        'email_verified_at' => now(),  // Automatically verify email
+    ]);
+
+    // Generate API token for the user
+    $token = $user->createToken('auth_token')->plainTextToken;
+
+    // Log the registration event
+    Log::info('New user registered: ' . $user->email);
+
+    // Return success response with token and user info
+    return response()->json([
+        'message' => 'Registration successful',
+        'token' => $token,
+        'user' => [
+            'id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+        ],
+    ], 201);
+}
     /**
      * Login user
      */

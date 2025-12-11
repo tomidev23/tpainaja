@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Exam;
 
 class HasilTes extends Model
 {
@@ -22,7 +23,7 @@ class HasilTes extends Model
     ];
 
     protected $casts = [
-        'answers' => 'array',
+        'answers' => 'array',  
         'submitted_at' => 'datetime',
         'score' => 'float',
     ];
@@ -40,6 +41,12 @@ class HasilTes extends Model
      */
     public function exam()
     {
-        return $this->belongsTo(Exam::class);
+        return $this->belongsTo(Exam::class, 'exam_id');
+    }
+
+    // Hapus relasi 'answers' karena bukan relasi ke model lain, tapi kolom JSON
+    public function getAnswersAttribute($value)
+    {
+        return json_decode($value);  // Mengembalikan answers sebagai array
     }
 }
