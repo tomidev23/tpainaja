@@ -10,7 +10,6 @@ return new class extends Migration
     public function up(): void
 {
     Schema::table('questions', function (Blueprint $table) {
-        // ✅ Cek dulu apakah kolom sudah ada — jika belum, baru tambahkan
         if (!Schema::hasColumn('questions', 'jenis_soal')) {
             $table->enum('jenis_soal', [
                 'pilihan_ganda',
