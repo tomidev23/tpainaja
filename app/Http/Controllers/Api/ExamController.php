@@ -22,7 +22,9 @@ class ExamController extends Controller
         Log::info('Fetching all exams with questions.');
 
         // Get exams with questions and their options
-        $exams = Exam::with('questions.options')->get();
+        $exams = Exam::with('questions.options')
+         ->where('is_completed', false)
+         ->get();
 
         return response()->json([
             'status' => 'success',
@@ -131,38 +133,68 @@ public function getQuestions($examId)
         $totalScore = round(($correctAnswers / $totalQuestions) * 100, 2);
     }
 
-    try {
-        $hasilTes = HasilTes::create([
-            'user_id' => $user->id,
-            'exam_id' => $examId,
-            'score' => $totalScore,
-            'correct_answers' => $correctAnswers,
-            'total_questions' => $totalQuestions,
-            'answers' => $encryptedAnswers, // Simpan jawaban yang sudah dienkripsi
-            'submitted_at' => now(),
-        ]);
+ try {
+    $hasilTes = HasilTes::create([
+        'user_id' => $user->id,
+        'exam_id' => $examId,
+        'score' => $totalScore,
+        'correct_answers' => $correctAnswers,
+        'total_questions' => $totalQuestions,
+        'answers' => $encryptedAnswers,
+        'submitted_at' => now(),
+    ]);
 
-        Log::info('Exam result submitted', [
-            'user_id' => $user->id,
-            'exam_id' => $examId,
-            'score' => $totalScore,
-        ]);
-
-        return response()->json([
-            'message' => 'Exam submitted successfully',
-            'hasil_tes_id' => $hasilTes->id,
-            'score' => $totalScore,
-            'correct_answers' => $correctAnswers,
-            'total_questions' => $totalQuestions,
-        ], 200);
-    } catch (\Exception $e) {
-        Log::error('Error submitting exam result: ' . $e->getMessage());
-
-        return response()->json([
-            'message' => 'Error occurred while saving the exam result',
-        ], 500);
+    // ✅ Update is_completed di tabel exams untuk exam ini
+    $exam = Exam::find($examId);
+    if ($exam) {
+        $exam->is_completed = true; // tandai sudah selesai
+        $exam->save();
     }
+
+    Log::info('Exam result submitted', [
+        'user_id' => $user->id,
+        'exam_id' => $examId,
+        'score' => $totalScore,
+    ]);
+
+    return response()->json([
+        'message' => 'Exam submitted successfully',
+        'hasil_tes_id' => $hasilTes->id,
+        'score' => $totalScore,
+        'correct_answers' => $correctAnswers,
+        'total_questions' => $totalQuestions,
+    ], 200);
+
+} catch (\Exception $e) {
+    Log::error('Error submitting exam result: ' . $e->getMessage());
+
+    return response()->json([
+        'message' => 'Error occurred while saving the exam result',
+    ], 500);
 }
+}
+
+public function getExamDetail($hasilTesId)
+{
+    // Ambil hasil tes berdasarkan ID
+    $hasilTes = HasilTes::with('exam') // Memuat relasi 'exam' yang tepat
+        ->where('id', $hasilTesId)
+        ->first();
+
+    if (!$hasilTes) {
+        return response()->json([
+            'message' => 'Hasil tes tidak ditemukan',
+        ], 404);
+    }
+
+    // Kembalikan data ujian terkait dengan hasil tes
+    return response()->json([
+        'status' => 'success',
+        'data' => $hasilTes->exam, // Kembalikan data exam yang terkait
+    ], 200);
+}
+
+
 
     /**
      * Get exam result detail
@@ -199,13 +231,11 @@ public function getQuestions($examId)
                 'correct_answers' => $hasilTes->correct_answers,
                 'submitted_at' => $hasilTes->submitted_at->format('d M Y H:i'),
                 'exam' => $hasilTes->exam,
+                'answers' => json_decode($hasilTes->answers), // Add this line to decode answers if they are JSON
+
             ],
         ], 200);
     }
-
-    /**
-     * Get user's exam history
-     */
   /**
  * Get current user's exam history
  */

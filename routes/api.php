@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ExamController;
 use App\Http\Controllers\Api\ExamMonitoringController;
 use App\Http\Controllers\Api\SecurityController;
+use App\Http\Controllers\Api\ExamHistoryController;
 
 
 
@@ -34,6 +35,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/hasil-ujian/{hasilTesId}', [ExamController::class, 'getHasilUjian']);
     Route::get('/exam-history', [ExamController::class, 'getUserHistory']);
 
+    //Detail Hasil Ujian
+    Route::get('/exam-history/{id}', [ExamHistoryController::class, 'show']); 
     
 });
 
