@@ -43,17 +43,19 @@
         <i class="fas fa-pen text-[#FBBF24] text-[14px]"></i>
     </a>
 
-    <!-- Hapus -->
-    <form action="{{ route('admin.participants.destroy', $participant->id) }}" method="POST"
-        onsubmit="return confirm('Yakin ingin menghapus peserta ini?')" class="inline-block z-10 relative">
-        @csrf
-        @method('DELETE')
-        <button type="submit"
-            class="w-9 h-9 flex items-center justify-center rounded-full bg-[#FFE4E6] shadow-md hover:shadow-lg hover:scale-105 transition duration-200"
-            title="Hapus Peserta">
-            <i class="fas fa-times text-[#EF4444] text-[14px]"></i>
-        </button>
-    </form>
+   <!-- HAPUS -->
+<form action="{{ route('admin.participants.destroy', $participant->id) }}" method="POST"
+      class="delete-form inline-block z-10 relative">
+    @csrf
+    @method('DELETE')
+    <button type="button"
+        class="btn-delete w-9 h-9 flex items-center justify-center rounded-full bg-[#FFE4E6] shadow-md hover:shadow-lg hover:scale-105 transition duration-200"
+        title="Hapus Peserta">
+        <i class="fas fa-times text-[#EF4444] text-[14px]"></i>
+    </button>
+</form>
+
+
 </div>
 
                 </div>

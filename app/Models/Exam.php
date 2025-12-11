@@ -41,4 +41,10 @@ class Exam extends Model
         // Mengambil data exam beserta soal dan pilihan jawabannya
         return $this->with('questions.options')->find($examId);
     }
+
+    public function results()
+{
+    return $this->hasMany(ExamResult::class);
+}
+
 }

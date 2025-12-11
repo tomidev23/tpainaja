@@ -37,12 +37,10 @@
             </div>
 
             <div class="flex items-center">
-                <button 
-                    type="submit"
-                    class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow"
-                >
-                    Update
-                </button>
+              <button type="button" class="btn-save bg-blue-600 text-white px-4 py-2 rounded-lg shadow">
+    Update
+</button>
+
 
                 <a 
                     href="{{ route('admin.participants.index') }}" 

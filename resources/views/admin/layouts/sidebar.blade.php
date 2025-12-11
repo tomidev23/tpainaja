@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@yield('title') Dashboard| TPAinaja</title>
+    <title>@yield('title') | TPAinaja</title>
 
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -14,7 +14,7 @@
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 
-    <!-- Bootstrap JS (Popper + Bundle) -->
+    <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" defer></script>
 
     <!-- Alpine.js -->
@@ -23,69 +23,64 @@
 
 <body class="bg-[#F8FAFC] text-gray-800 flex h-screen">
 
+    <!-- SIDEBAR -->
     <aside class="w-64 bg-[#FFC920] flex flex-col justify-between py-6 text-gray-800">
         <div>
-            <!-- 🔸 Logo -->
+            <!-- LOGO -->
             <div class="flex items-center justify-center mb-10">
                 <img src="{{ asset('images/logo-tpainaja.png') }}" alt="TPAinaja Logo" class="w-32 h-auto">
             </div>
 
-            <!-- 🔸 Navigasi -->
+            <!-- MENU -->
             <nav class="space-y-2 px-4 font-medium">
-                <a href="{{ route('admin.dashboard') }}" 
-                   :class="{'bg-transparent text-[#FFFFFF]': activeMenu === 'admin.dashboard', 'hover:bg-white/40': activeMenu !== 'admin.dashboard'}"
-                   @click="activeMenu = 'admin.dashboard'"
-                   class="flex items-center gap-3 px-4 py-2 rounded-lg transition">
-                    <i class="fas fa-home w-5 text-center"></i> <span>Dashboard</span>
+                <a href="{{ route('admin.dashboard') }}"
+                   :class="{'bg-white/40 rounded-lg': activeMenu === 'admin.dashboard'}"
+                   class="flex items-center gap-3 px-4 py-2 rounded-lg transition hover:bg-white/30">
+                    <i class="fas fa-home w-5 text-center"></i> Dashboard
                 </a>
 
-                <a href="{{ route('admin.exam.index') }}" 
-                   :class="{'bg-transparent text-[#FFFFFF]': activeMenu.startsWith('admin.exam'), 'hover:bg-white/40': !activeMenu.startsWith('admin.exam')}"
-                   @click="activeMenu = 'admin.exam.index'"
-                   class="flex items-center gap-3 px-4 py-2 rounded-lg transition">
-                    <i class="fas fa-book w-5 text-center"></i> <span>Ujian</span>
+                <a href="{{ route('admin.exam.index') }}"
+                   :class="{'bg-white/40 rounded-lg': activeMenu.startsWith('admin.exam')}"
+                   class="flex items-center gap-3 px-4 py-2 rounded-lg transition hover:bg-white/30">
+                    <i class="fas fa-book w-5 text-center"></i> Ujian
                 </a>
 
-                <a href="{{ route('admin.participants.index') }}" 
-                   :class="{'bg-transparent text-[#FFFFFF]': activeMenu === 'admin.participants.index', 'hover:bg-white/40': activeMenu !== 'admin.participants.index'}"
-                   @click="activeMenu = 'admin.participants.index'"
-                   class="flex items-center gap-3 px-4 py-2 rounded-lg transition">
-                    <i class="fas fa-users w-5 text-center"></i> <span>Peserta</span>
+                <a href="{{ route('admin.participants.index') }}"
+                   :class="{'bg-white/40 rounded-lg': activeMenu === 'admin.participants.index'}"
+                   class="flex items-center gap-3 px-4 py-2 rounded-lg transition hover:bg-white/30">
+                    <i class="fas fa-users w-5 text-center"></i> Peserta
                 </a>
 
-                <a href="{{ route('admin.staff.index') }}" 
-                   :class="{'bg-transparent text-[#FFFFFF]': activeMenu === 'admin.staff.index', 'hover:bg-white/40': activeMenu !== 'admin.staff.index'}"
-                   @click="activeMenu = 'admin.staff.index'"
-                   class="flex items-center gap-3 px-4 py-2 rounded-lg transition">
-                    <i class="fas fa-user-tie w-5 text-center"></i> <span>Staff</span>
+                <a href="{{ route('admin.staff.index') }}"
+                   :class="{'bg-white/40 rounded-lg': activeMenu === 'admin.staff.index'}"
+                   class="flex items-center gap-3 px-4 py-2 rounded-lg transition hover:bg-white/30">
+                    <i class="fas fa-user-tie w-5 text-center"></i> Staff
                 </a>
 
-                <a href="{{ route('admin.reports.index') }}" 
-                   :class="{'bg-transparent text-[#FFFFFF]': activeMenu === 'admin.reports.index', 'hover:bg-white/40': activeMenu !== 'admin.reports.index'}"
-                   @click="activeMenu = 'admin.reports.index'"
-                   class="flex items-center gap-3 px-4 py-2 rounded-lg transition">
-                    <i class="fas fa-file-alt w-5 text-center"></i> <span>Reports</span>
+                <a href="{{ route('admin.reports.index') }}"
+                   :class="{'bg-white/40 rounded-lg': activeMenu === 'admin.reports.index'}"
+                   class="flex items-center gap-3 px-4 py-2 rounded-lg transition hover:bg-white/30">
+                    <i class="fas fa-file-alt w-5 text-center"></i> Reports
                 </a>
             </nav>
         </div>
 
-        <!-- 🔸 Tombol Sign Out -->
+        <!-- LOGOUT -->
         <form action="{{ route('admin.logout') }}" method="POST">
             @csrf
-            <button type="submit" class="text-white bg-red-500 hover:bg-red-600 px-4 py-2 rounded-md w-40 mx-4 font-medium transition">
-                 <i class="fas fa-sign-out-alt mr-2"></i>
-                Logout
+            <button type="submit"
+                class="text-white bg-red-500 hover:bg-red-600 px-4 py-2 rounded-md w-40 mx-4 font-medium transition">
+                <i class="fas fa-sign-out-alt mr-2"></i> Logout
             </button>
         </form>
-
     </aside>
 
-    <!-- ✅ MAIN CONTENT -->
+    <!-- MAIN CONTENT -->
     <main class="flex-1 flex flex-col overflow-y-auto">
 
-        <!-- 🔹 HEADER / TOP BAR -->
-        <header class="flex items-center justify-between px-8 py-4 bg-white border-b border-gray-200 shadow-sm">
-            <h1 class="text-lg font-semibold text-gray-700">@yield('title', 'Dashboard')</h1>
+        <!-- HEADER -->
+        <header class="flex items-center justify-between px-10 py-5 bg-white border-b shadow-sm">
+            <h1 class="text-xl font-semibold text-gray-700">@yield('title')</h1>
 
             <div class="flex items-center space-x-4">
                 <select class="border border-gray-300 rounded-md text-sm px-2 py-1">
@@ -93,38 +88,103 @@
                     <option>This Month</option>
                 </select>
 
-             <!-- 🔘 Tombol Profil -->
-<button
-    type="button"
-    class="w-10 h-10 rounded-full overflow-hidden shadow-md flex items-center justify-center bg-indigo-500 hover:bg-indigo-600"
-    data-bs-toggle="modal"
-    data-bs-target="#profileModal"
->
-    @if(Auth::user()->profile_picture)
-        <img 
-            src="{{ asset('storage/' . Auth::user()->profile_picture) }}" 
-            alt="Profile"
-            class="w-full h-full object-cover"
-        >
-    @else
-        <span class="text-white font-bold">
-            {{ strtoupper(substr(trim(Auth::user()->name ?? 'U'), 0, 1)) }}
-        </span>
-    @endif
-</button>
+                <!-- PROFILE -->
+                <button type="button"
+                    class="w-10 h-10 rounded-full overflow-hidden shadow-md flex items-center justify-center bg-indigo-500 hover:bg-indigo-600"
+                    data-bs-toggle="modal" data-bs-target="#profileModal">
 
-
+                    @if(Auth::user()->profile_picture)
+                        <img src="{{ asset('storage/' . Auth::user()->profile_picture) }}"
+                             class="w-full h-full object-cover">
+                    @else
+                        <span class="text-white font-bold">
+                            {{ strtoupper(substr(trim(Auth::user()->name ?? 'U'), 0, 1)) }}
+                        </span>
+                    @endif
+                </button>
             </div>
         </header>
 
-        <!-- 🔹 ISI HALAMAN -->
-        <section class="flex-1 p-8 bg-[#F8FAFC]">
-            @yield('content')
+        <!-- FIX: CONTENT CONTAINER (TERPUSAT) -->
+        <section class="flex-1 bg-[#F8FAFC] pt-10 px-10">
+            <div class="max-w-5xl mx-auto">
+                @yield('content')
+            </div>
         </section>
     </main>
 
-    <!-- 🔹 INCLUDE MODAL PROFIL -->
     @include('modal.modalprofile')
+
+    <!-- SweetAlert -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <!-- SAVE CONFIRM -->
+    <script>
+    document.addEventListener("DOMContentLoaded", function () {
+        document.querySelectorAll(".btn-save").forEach(btn => {
+            btn.addEventListener("click", function () {
+                let form = this.closest("form");
+
+                Swal.fire({
+                    title: "Anda yakin?",
+                    text: "Data akan disimpan!",
+                    icon: "question",
+                    showCancelButton: true,
+                    confirmButtonColor: "#3085d6",
+                    cancelButtonColor: "#d33",
+                    confirmButtonText: "Ya, Simpan",
+                    cancelButtonText: "Batal"
+                }).then((result) => { if (result.isConfirmed) form.submit(); });
+            });
+        });
+    });
+    </script>
+
+    <!-- DELETE CONFIRM -->
+    <script>
+    document.addEventListener("DOMContentLoaded", function () {
+        document.querySelectorAll(".btn-delete").forEach(btn => {
+            btn.addEventListener("click", function () {
+                let form = this.closest("form");
+
+                Swal.fire({
+                    title: "Hapus data?",
+                    text: "Data yang dihapus tidak dapat dikembalikan!",
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonColor: "#d33",
+                    cancelButtonColor: "#3085d6",
+                    confirmButtonText: "Ya, Hapus",
+                    cancelButtonText: "Batal"
+                }).then((result) => { if (result.isConfirmed) form.submit(); });
+            });
+        });
+    });
+    </script>
+
+    <!-- SUCCESS -->
+    @if(session('success'))
+    <script>
+        Swal.fire({
+            icon: 'success',
+            title: 'Berhasil!',
+            text: "{{ session('success') }}",
+            timer: 1800,
+            showConfirmButton: false,
+        });
+    </script>
+    @endif
+
+    <!-- ERROR -->
+    @if(session('error'))
+    <script>
+        Swal.fire({
+            icon: 'error',
+            title: 'Gagal!',
+            text: "{{ session('error') }}",
+        });
+    </script>
+    @endif
 
 </body>
 </html>
