@@ -44,56 +44,88 @@ class QuestionController extends Controller
     /**
      * Simpan soal baru
      */
-   public function store(Request $request, $exam_id)
+ public function store(Request $request, $exam_id)
 {
     $type = $request->question_type;
 
-    // Validasi dinamis
+    // Aturan dasar
+    $baseRules = [
+        'question_text' => 'required|string',
+        'question_file' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
+    ];
+
     if ($type == 'multiple_choice') {
-        $validated = $request->validate([
-            'question_text' => 'required|string',
-            'option_a' => 'required|string',
-            'option_b' => 'required|string',
-            'option_c' => 'required|string',
-            'option_d' => 'required|string',
-            'correct_answer' => 'required|String|in:A,B,C,D',
-            'question_file' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
+        $rules = array_merge($baseRules, [
+            'option_a'      => 'required|string',
+            'option_b'      => 'required|string',
+            'option_c'      => 'required|string',
+            'option_d'      => 'required|string',
+            'correct_answer'=> 'required|string|in:A,B,C,D',
         ]);
-    } 
-    else if ($type == 'essay') {
-        $validated = $request->validate([
-            'question_text' => 'required|string',
-            'essay_answer' => 'required|string',
-            'question_file' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
+    } elseif ($type == 'essay') {
+        $rules = array_merge($baseRules, [
+            'essay_answer'  => 'required|string',
         ]);
+    } elseif ($type == 'true_false') {
+        $rules = array_merge($baseRules, [
+            'correct_answer'=> 'required|in:true,false',
+        ]);
+    } else {
+        // kalau ada tipe lain, bisa tambahkan di sini
+        abort(400, 'Jenis soal tidak dikenal');
     }
-    else if ($type == 'true_false') {
-        $validated = $request->validate([
-            'question_text' => 'required|string',
-            'correct_answer' => 'required|in:true,false',
-            'question_file' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
-        ]);
-    }
+
+     $validated = $request->validate($rules);
 
     $exam = Exam::findOrFail($exam_id);
 
     // Upload file
+    $questionFilePath = null;
     if ($request->hasFile('question_file')) {
-        $validated['question_file'] = 
-            $request->file('question_file')->store('questions', 'public');
+        $questionFilePath = $request->file('question_file')->store('questions', 'public');
     }
 
-    // Save question
-    $validated['question_type'] = $type;
+    $jenisSoalMap = [
+        'multiple_choice' => 'pilihan_ganda',
+        'essay'           => 'esai',
+        'true_false'      => 'benar_salah',
+    ];
 
-    $exam->questions()->create($validated);
+    $data = [
+        'exam_id'       => $exam->id,
+        'question_text' => $validated['question_text'],
+        'jenis_soal'    => $jenisSoalMap[$type],
+        'question_file' => $questionFilePath,
+        'skor_maks'     => 1,
+        'aktif'         => 1,
+    ];
+
+    if ($type == 'multiple_choice') {
+        $data['option_a'] = $validated['option_a'];
+        $data['option_b'] = $validated['option_b'];
+        $data['option_c'] = $validated['option_c'];
+        $data['option_d'] = $validated['option_d'];
+        $data['jawaban_benar'] = $validated['correct_answer']; // A/B/C/D
+    } elseif ($type == 'essay') {
+        $data['option_a'] = '-';
+        $data['option_b'] = '-';
+        $data['option_c'] = '-';
+        $data['option_d'] = '-';
+        $data['jawaban_benar'] = $validated['essay_answer'];
+    } elseif ($type == 'true_false') {
+        $data['option_a'] = '-';
+        $data['option_b'] = '-';
+        $data['option_c'] = '-';
+        $data['option_d'] = '-';
+        $data['jawaban_benar'] = $validated['correct_answer']; // true/false
+    }
+
+    $exam->questions()->create($data);
 
     return redirect()
         ->route('admin.questions.index', $exam_id)
         ->with('success', 'Soal berhasil ditambahkan!');
 }
-
-
     /**
      * Edit soal
      */
