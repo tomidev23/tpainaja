@@ -4,36 +4,42 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Participant;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use App\Models\User;
 
 class ParticipantController extends Controller
 {
+    // ===============================
     // Display all participants
+    // ===============================
     public function index()
     {
-        // Ambil semua user dengan role peserta
         $participants = User::where('role', 'peserta')->get();
+
         return view('admin.participants.index', compact('participants'));
     }
 
-    // Show the form for creating a new participant
+    // ===============================
+    // Show create form
+    // ===============================
     public function create()
     {
         return view('admin.participants.create');
     }
 
-    // Store a new participant
+    // ===============================
+    // Store new participant
+    // ===============================
     public function store(Request $request)
     {
         $request->validate([
             'name'     => 'required|string|max:255',
             'email'    => 'required|email|unique:users,email',
-            'password' => 'required|min:6',   // <-- sudah diperbaiki (hapus confirmed)
+            'password' => 'required|min:6',
         ]);
 
-        // 1. Simpan user
+        // Simpan ke tabel users
         $user = User::create([
             'name'     => $request->name,
             'email'    => $request->email,
@@ -41,7 +47,7 @@ class ParticipantController extends Controller
             'role'     => 'peserta',
         ]);
 
-        // 2. Simpan peserta detail
+        // Simpan ke tabel participants
         Participant::create([
             'user_id'     => $user->id,
             'total_score' => 0,
@@ -49,25 +55,35 @@ class ParticipantController extends Controller
             'status'      => 'gagal',
         ]);
 
-        return redirect()->route('admin.participants.index')
-                         ->with('success', 'Peserta berhasil ditambahkan!');
+        return redirect()
+            ->route('admin.participants.index')
+            ->with('success', 'Peserta berhasil ditambahkan!');
     }
 
-    // Show the form for editing an existing participant
+    // ===============================
+    // Show edit form
+    // ===============================
     public function edit($id)
     {
-        $participant = User::where('role', 'peserta')->where('id', $id)->firstOrFail();
+        $participant = User::where('role', 'peserta')
+            ->where('id', $id)
+            ->firstOrFail();
+
         return view('admin.participants.edit', compact('participant'));
     }
 
-    // Update participant info
+    // ===============================
+    // Update participant
+    // ===============================
     public function update(Request $request, $id)
     {
-        $participant = User::where('role', 'peserta')->where('id', $id)->firstOrFail();
+        $participant = User::where('role', 'peserta')
+            ->where('id', $id)
+            ->firstOrFail();
 
         $request->validate([
             'name'  => 'required|string|max:255',
-            'email' => "required|email|unique:users,email,$id",
+            'email' => 'required|email|unique:users,email,' . $participant->id,
         ]);
 
         $participant->update([
@@ -75,19 +91,28 @@ class ParticipantController extends Controller
             'email' => $request->email,
         ]);
 
-        return redirect()->route('admin.participants.index')
-                         ->with('success', 'Peserta berhasil diperbarui');
+        return redirect()
+            ->route('admin.participants.index')
+            ->with('success', 'Peserta berhasil diperbarui!');
     }
 
+    // ===============================
     // Delete participant
+    // ===============================
     public function destroy($id)
     {
-        $participant = User::where('role', 'peserta')->where('id', $id)->firstOrFail();
+        $participant = User::where('role', 'peserta')
+            ->where('id', $id)
+            ->firstOrFail();
+
+        // Hapus relasi participant dulu (aman)
+        Participant::where('user_id', $participant->id)->delete();
 
         // Hapus user
         $participant->delete();
 
-        return redirect()->route('admin.participants.index')
-                         ->with('success', 'Peserta berhasil dihapus!');
+        return redirect()
+            ->route('admin.participants.index')
+            ->with('success', 'Peserta berhasil dihapus!');
     }
 }

@@ -4,49 +4,62 @@ use Illuminate\Support\Facades\Route;
 
 // ========== CONTROLLERS ==========
 use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\StaffController;
 use App\Http\Controllers\Admin\ExamController;
 use App\Http\Controllers\Admin\QuestionController;
 use App\Http\Controllers\Admin\ParticipantController;
 use App\Http\Controllers\Admin\ReportController;
-use App\Http\Controllers\Admin\AdminController;
 
-use App\Http\Controllers\staff\DashboardController;
-use App\Http\Controllers\staff\QuestionController as StaffQuestionController;
-use App\Http\Controllers\staff\ExamController as StaffExamController;
+use App\Http\Controllers\Staff\DashboardController;
+use App\Http\Controllers\Staff\ExamController as StaffExamController;
+use App\Http\Controllers\Staff\QuestionController as StaffQuestionController;
 
 use App\Http\Controllers\ProfileController;
 
 
+// ================================
 // Public Landing Page
+// ================================
 Route::get('/', function () {
     return view('welcome');
 })->name('home');
 
 
-// ========== AUTH ROUTES ==========
+// ================================
+// AUTH ROUTES
+// ================================
 Route::controller(AuthController::class)->group(function () {
-    Route::get('/login', 'showLoginForm')->middleware('throttle:5,10')->name('auth.login');
+    Route::get('/login', 'showLoginForm')
+        ->middleware('throttle:5,10')
+        ->name('auth.login');
+
     Route::post('/login', 'login')->name('auth.login.post');
     Route::post('/logout', 'logout')->name('auth.logout');
 
-    Route::get('password/reset', 'showLinkRequestForm')->name('password.request');
-    Route::post('password/email', 'sendResetLinkEmail')->name('password.email');
-    Route::get('password/reset/{token}', 'showResetForm')->name('password.reset');
-    Route::post('password/reset', 'reset')->name('password.update');
+    Route::get('/password/reset', 'showLinkRequestForm')->name('password.request');
+    Route::post('/password/email', 'sendResetLinkEmail')->name('password.email');
+    Route::get('/password/reset/{token}', 'showResetForm')->name('password.reset');
+    Route::post('/password/reset', 'reset')->name('password.update');
 });
 
 
-// ========== ADMIN ROUTES ==========
-Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
+// ================================
+// ADMIN ROUTES
+// ================================
+Route::prefix('admin')
+    ->name('admin.')
+    ->middleware('auth')
+    ->group(function () {
 
-    // Dashboard
+    // ===== Dashboard =====
     Route::get('/dashboard', [AdminController::class, 'index'])->name('dashboard');
 
-    // Profile Modal
-    Route::get('/profile-modal', fn() => view('modal.modalprofile'))->name('modal.profile');
+    // ===== Profile Modal =====
+    Route::get('/profile-modal', fn () => view('modal.modalprofile'))
+        ->name('modal.profile');
 
-    // Staff Management
+    // ===== Staff Management =====
     Route::prefix('staff')->name('staff.')->group(function () {
         Route::get('/', [StaffController::class, 'index'])->name('index');
         Route::get('/create', [StaffController::class, 'create'])->name('create');
@@ -57,43 +70,46 @@ Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
         Route::delete('/{id}', [StaffController::class, 'destroy'])->name('destroy');
     });
 
-    // Exam
+    // ===== Exam Management =====
     Route::resource('exam', ExamController::class)->except(['show']);
-    Route::get('/exam/{id}/questions', [ExamController::class, 'questions'])->name('exam.questions');
+    Route::get('/exam/{id}/questions', [ExamController::class, 'questions'])
+        ->name('exam.questions');
 
-    // Questions nested under exam
+    // ===== Questions (nested under exam) =====
     Route::prefix('exam/{exam_id}')->group(function () {
         Route::resource('questions', QuestionController::class)->except(['show']);
     });
 
-    // Participants
+    // ===== Participants (FIXED & CLEAN) =====
     Route::resource('participants', ParticipantController::class)->except(['show']);
-    Route::post('/participants/create', [ParticipantController::class, 'create'])
-        ->name('participants.create');
 
-    // ========== FIXED REPORT ROUTES ==========
-    // Tidak ada create report. Report dihasilkan otomatis dari hasil ujian.
+    // ===== Reports =====
     Route::prefix('reports')->name('reports.')->group(function () {
-        Route::get('/', [ReportController::class, 'index'])->name('index'); // list hasil ujian
-        Route::get('/{id}', [ReportController::class, 'show'])->name('show'); // detail report
+        Route::get('/', [ReportController::class, 'index'])->name('index');
+        Route::get('/{id}', [ReportController::class, 'show'])->name('show');
     });
 
-    // Profile
+    // ===== Profile =====
     Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::put('/profile/update', [ProfileController::class, 'update'])->name('profile.update');
 
-    // Logout
+    // ===== Logout =====
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 });
 
 
-// ========== STAFF ROUTES ==========
-Route::prefix('staff')->name('staff.')->middleware('auth')->group(function () {
+// ================================
+// STAFF ROUTES
+// ================================
+Route::prefix('staff')
+    ->name('staff.')
+    ->middleware('auth')
+    ->group(function () {
 
-    // Dashboard
+    // ===== Dashboard =====
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-    // Exam CRUD for Staff
+    // ===== Exam CRUD (Staff) =====
     Route::prefix('exam')->name('exam.')->group(function () {
         Route::get('/', [StaffExamController::class, 'index'])->name('index');
         Route::get('/create', [StaffExamController::class, 'create'])->name('create');
@@ -104,22 +120,22 @@ Route::prefix('staff')->name('staff.')->middleware('auth')->group(function () {
         Route::delete('/{id}', [StaffExamController::class, 'destroy'])->name('destroy');
     });
 
-    // Questions for Staff
+    // ===== Questions (Staff) =====
     Route::prefix('questions')->name('questions.')->group(function () {
         Route::get('/{exam_id}', [StaffQuestionController::class, 'index'])->name('index');
         Route::get('/{exam_id}/create', [StaffQuestionController::class, 'create'])->name('create');
         Route::post('/{exam_id}', [StaffQuestionController::class, 'store'])->name('store');
     });
 
-    // Reports for Staff (same as admin, only read)
+    // ===== Reports (read only) =====
     Route::prefix('reports')->name('reports.')->group(function () {
         Route::get('/', [ReportController::class, 'index'])->name('index');
         Route::get('/{id}', [ReportController::class, 'show'])->name('show');
     });
 
-    // Profile
+    // ===== Profile =====
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile');
 
-    // Logout
+    // ===== Logout =====
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 });
