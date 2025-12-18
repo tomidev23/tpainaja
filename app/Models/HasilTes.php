@@ -49,4 +49,5 @@ class HasilTes extends Model
     {
         return json_decode($value);  // Mengembalikan answers sebagai array
     }
+    
 }

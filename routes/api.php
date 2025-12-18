@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\ExamController;
 use App\Http\Controllers\Api\ExamMonitoringController;
 use App\Http\Controllers\Api\SecurityController;
 use App\Http\Controllers\Api\ExamHistoryController;
+use App\Http\Controllers\Api\NotificationController;
 
 
 
@@ -39,6 +40,14 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/exam-history/{id}', [ExamHistoryController::class, 'show']); 
     
 });
+
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/notifications', [NotificationController::class, 'index']);
+    Route::patch('/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
+    Route::patch('/notifications/read-all', [NotificationController::class, 'markAllAsRead']);
+});
+
 
 // Default route for testing
 Route::get('/', function () {
