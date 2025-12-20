@@ -5,7 +5,7 @@
 @section('content')
 <div class="min-h-screen bg-[#F8FAFC] px-10 py-10">
 
-    <div class="max-w-4xl mx-auto bg-white rounded-[12px] border border-[#E5E7EB] shadow-sm px-10 py-8">
+    <div class="max-w-4xl mx-auto bg-white rounded-xl border border-[#E5E7EB] shadow-sm px-10 py-8">
         <h2 class="text-xl font-semibold text-gray-800 mb-6">Buat Ujian</h2>
 
         <form action="{{ route('admin.exam.store') }}" method="POST" enctype="multipart/form-data" class="space-y-5">

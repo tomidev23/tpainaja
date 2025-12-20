@@ -7,6 +7,9 @@ use Illuminate\Http\Request;
 use App\Models\Exam;
 use App\Models\Question;
 use Illuminate\Support\Facades\Storage;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Imports\QuestionsImport;
+
 
 class QuestionController extends Controller
 {
@@ -60,7 +63,7 @@ class QuestionController extends Controller
             'option_b'      => 'required|string',
             'option_c'      => 'required|string',
             'option_d'      => 'required|string',
-            'correct_answer'=> 'required|string|in:A,B,C,D',
+            'jawaban_benar'=> 'required|string|in:A,B,C,D',
         ]);
     } elseif ($type == 'essay') {
         $rules = array_merge($baseRules, [
@@ -68,7 +71,7 @@ class QuestionController extends Controller
         ]);
     } elseif ($type == 'true_false') {
         $rules = array_merge($baseRules, [
-            'correct_answer'=> 'required|in:true,false',
+            'jawaban_benar'=> 'required|in:true,false',
         ]);
     } else {
         // kalau ada tipe lain, bisa tambahkan di sini
@@ -105,7 +108,7 @@ class QuestionController extends Controller
         $data['option_b'] = $validated['option_b'];
         $data['option_c'] = $validated['option_c'];
         $data['option_d'] = $validated['option_d'];
-        $data['jawaban_benar'] = $validated['correct_answer']; // A/B/C/D
+        $data['jawaban_benar'] = $validated['jawaban_benar']; // A/B/C/D
     } elseif ($type == 'essay') {
         $data['option_a'] = '-';
         $data['option_b'] = '-';
@@ -117,7 +120,7 @@ class QuestionController extends Controller
         $data['option_b'] = '-';
         $data['option_c'] = '-';
         $data['option_d'] = '-';
-        $data['jawaban_benar'] = $validated['correct_answer']; // true/false
+        $data['jawaban_benar'] = $validated['jawaban_benar']; // true/false
     }
 
     $exam->questions()->create($data);
@@ -148,7 +151,7 @@ class QuestionController extends Controller
             'option_b' => 'required|string|max:255',
             'option_c' => 'required|string|max:255',
             'option_d' => 'required|string|max:255',
-            'correct_answer' => 'required|in:A,B,C,D',
+            'jawaban_benar' => 'required|in:A,B,C,D',
             'question_file' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
         ]);
 
@@ -188,4 +191,28 @@ class QuestionController extends Controller
             ->route('admin.questions.index', $exam_id)
             ->with('success', 'Soal berhasil dihapus!');
     }
+
+
+public function importSoal(Request $request, Exam $exam)
+{
+    $request->validate([
+        'file' => 'required|mimes:xlsx,xls'
+    ]);
+
+    Excel::import(new QuestionsImport($exam->id), $request->file('file'));
+
+    return back()->with('success', 'Soal berhasil diimport');
+}
+
+public function questions($examId)
+{
+    $exam = Exam::findOrFail($examId);
+
+    $questions = Question::where('exam_id', $exam->id)
+        ->orderBy('id', 'asc')
+        ->get();
+
+    return view('admin.questions.index', compact('exam', 'questions'));
+}
+
 }

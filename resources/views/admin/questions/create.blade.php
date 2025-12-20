@@ -39,22 +39,22 @@
 
             <div class="flex items-center mb-2">
                 <input type="text" name="option_a" placeholder="Opsi A" class="border rounded w-full p-2">
-                <input type="radio" name="correct_answer" value="A" class="ml-3"> A
+                        <input type="radio" name="jawaban_benar" value="A" class="ml-3"> A
             </div>
 
             <div class="flex items-center mb-2">
                 <input type="text" name="option_b" placeholder="Opsi B" class="border rounded w-full p-2">
-                <input type="radio" name="correct_answer" value="B" class="ml-3"> B
+                <input type="radio" name="jawaban_benar" value="B" class="ml-3"> B
             </div>
 
             <div class="flex items-center mb-2">
                 <input type="text" name="option_c" placeholder="Opsi C" class="border rounded w-full p-2">
-                <input type="radio" name="correct_answer" value="C" class="ml-3"> C
+                <input type="radio" name="jawaban_benar" value="C" class="ml-3"> C
             </div>
 
             <div class="flex items-center mb-2">
                 <input type="text" name="option_d" placeholder="Opsi D" class="border rounded w-full p-2">
-                <input type="radio" name="correct_answer" value="D" class="ml-3"> D
+                <input type="radio" name="jawaban_benar" value="D" class="ml-3"> D
             </div>
         </div>
 
@@ -68,10 +68,10 @@
         <div id="true_false_box" class="hidden">
             <label class="block font-medium mb-2">Jawaban</label>
             <label class="flex items-center mb-2">
-                <input type="radio" name="correct_answer" value="true" class="mr-2"> Benar
+                <input type="radio" name="jawaban_benar" value="true" class="mr-2"> Benar
             </label>
             <label class="flex items-center">
-                <input type="radio" name="correct_answer" value="false" class="mr-2"> Salah
+                <input type="radio" name="jawaban_benar" value="false" class="mr-2"> Salah
             </label>
         </div>
 

@@ -20,7 +20,7 @@ return new class extends Migration
         }
 
         if (!Schema::hasColumn('questions', 'skor_maks')) {
-            $table->unsignedTinyInteger('skor_maks')->default(1)->after('correct_answer');
+            $table->unsignedTinyInteger('skor_maks')->default(1)->after('jawaban_benar');
         }
 
         if (!Schema::hasColumn('questions', 'aktif')) {

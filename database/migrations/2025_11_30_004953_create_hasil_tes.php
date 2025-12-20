@@ -16,7 +16,7 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->foreignId('exam_id')->constrained('exams')->onDelete('cascade');
             $table->decimal('score', 5, 2)->default(0); // Score out of 100
-            $table->integer('correct_answers')->default(0);
+            $table->integer('jawaban_benar')->default(0);
             $table->integer('total_questions')->default(0);
             $table->json('answers')->nullable(); // Store all answers as JSON
             $table->timestamp('submitted_at')->nullable();

@@ -87,11 +87,11 @@
         {{-- Jawaban Benar --}}
         <div class="mt-3">
             <label class="font-semibold">Jawaban Benar</label>
-            <select name="correct_answer" class="border p-2 rounded">
-                <option value="A" {{ $question->correct_answer == 'A' ? 'selected' : '' }}>A</option>
-                <option value="B" {{ $question->correct_answer == 'B' ? 'selected' : '' }}>B</option>
-                <option value="C" {{ $question->correct_answer == 'C' ? 'selected' : '' }}>C</option>
-                <option value="D" {{ $question->correct_answer == 'D' ? 'selected' : '' }}>D</option>
+            <select name="jawaban_benar" class="border p-2 rounded">
+                <option value="A" {{ $question->jawaban_benar == 'A' ? 'selected' : '' }}>A</option>
+                <option value="B" {{ $question->jawaban_benar == 'B' ? 'selected' : '' }}>B</option>
+                <option value="C" {{ $question->jawaban_benar == 'C' ? 'selected' : '' }}>C</option>
+                <option value="D" {{ $question->jawaban_benar == 'D' ? 'selected' : '' }}>D</option>
             </select>
         </div>
 

@@ -17,6 +17,13 @@
             </svg>
             Tambah Soal
         </a>
+           <!-- Import Excel -->
+                    <button
+                        onclick="openImportModal({{ $exam->id }}, '{{ $exam->nama_ujian }}')"
+                        class="w-8 h-8 flex items-center justify-center rounded-full bg-green-100 text-green-600"
+                        title="Import Soal Excel">
+                        <i class="fas fa-file-excel"></i>
+                    </button>
     </div>
 
     {{-- Success Notification --}}
@@ -42,7 +49,7 @@
                 <tr class="hover:bg-gray-50 transition">
                     <td class="py-3 px-4 border-b">{{ $loop->iteration }}</td>
                     <td class="py-3 px-4 border-b">{{ Str::limit($q->question_text, 60) }}</td>
-                    <td class="py-3 px-4 border-b">{{ $q->correct_answer }}</td>
+                    <td class="py-3 px-4 border-b">{{ $q->jawaban_benar }}</td>
 
                     <td class="py-3 px-4 border-b text-center">
                         <div class="flex justify-center space-x-3">
@@ -130,6 +137,31 @@
     </div>
 </div>
 
+<div id="importModal"
+     class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-xl shadow-lg w-full max-w-md p-6">
+        <h3 class="text-lg font-semibold mb-2">Import Soal Excel</h3>
+        <p class="text-sm text-gray-500 mb-4" id="examTitle"></p>
+
+        <form method="POST" enctype="multipart/form-data" id="importForm">
+            @csrf
+            <input type="file" name="file" accept=".xlsx,.xls"
+                   class="w-full border rounded-md px-3 py-2 mb-4" required>
+
+            <div class="flex justify-end gap-3">
+                <button type="button" onclick="closeImportModal()"
+                        class="px-4 py-2 bg-gray-100 rounded-md">
+                    Batal
+                </button>
+                <button type="submit"
+                        class="px-4 py-2 bg-green-600 text-white rounded-md">
+                    Import
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
 {{-- Script Modal --}}
 <script>
     function openPreview(id) {
@@ -138,6 +170,22 @@
     function closePreview(id) {
         document.getElementById('modal-' + id).classList.add('hidden');
     }
+</script>
+
+<script>
+function openImportModal(examId, examName) {
+    document.getElementById('examTitle').innerText = 'Ujian: ' + examName;
+    document.getElementById('importForm').action =
+        `/admin/exams/${examId}/import-soal`;
+
+    document.getElementById('importModal').classList.remove('hidden');
+    document.getElementById('importModal').classList.add('flex');
+}
+
+function closeImportModal() {
+    document.getElementById('importModal').classList.add('hidden');
+    document.getElementById('importModal').classList.remove('flex');
+}
 </script>
 
 @endsection

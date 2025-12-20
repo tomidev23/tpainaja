@@ -9,14 +9,18 @@ class Question extends Model
     use HasFactory;
 
     protected $fillable = [
-        'exam_id',
-        'question_text',
-        'option_a',   // Opsional jika tetap menggunakan schema sebelumnya
-        'option_b',   // Opsional
-        'option_c',   // Opsional
-        'option_d',   // Opsional
-        'correct_option',
-    ];
+    'exam_id',
+    'question_text',
+    'option_a',
+    'option_b',
+    'option_c',
+    'option_d',
+    'jawaban_benar',
+    'skor_maks',
+    'jenis_soal',
+    'aktif',
+];
+
 
     // Relasi dengan model Exam
     public function exam()
@@ -24,9 +28,4 @@ class Question extends Model
         return $this->belongsTo(Exam::class);
     }
 
-    // Relasi dengan model Option
-     public function options()
-    {
-        return $this->hasMany(Option::class);  // Relasi hasMany dengan Option
-    }
 }

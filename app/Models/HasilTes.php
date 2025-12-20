@@ -16,7 +16,7 @@ class HasilTes extends Model
         'user_id',
         'exam_id',
         'score',
-        'correct_answers',
+        'jawaban_benar',
         'total_questions',
         'answers',
         'submitted_at',
