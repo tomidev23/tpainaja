@@ -19,7 +19,7 @@
                 <div class="flex items-center mb-2">
                     <input type="text" name="option_{{ $i }}" placeholder="Option {{ $i }}" class="border rounded w-full p-2">
                     <label class="flex items-center ml-3">
-                        <input type="radio" name="correct_answer" value="option_{{ $i }}" class="mr-1">
+                        <input type="radio" name="jawaban_benar" value="option_{{ $i }}" class="mr-1">
                         <span class="text-gray-600 text-sm">Jawaban Benar</span>
                     </label>
                 </div>

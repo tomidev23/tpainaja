@@ -1,47 +1,53 @@
 @extends('admin.layouts.sidebar')
 
-@section('title', 'Report Hasil Ujian')
+@section('title', 'Report')
 
 @section('content')
 <div class="p-6">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        @forelse ($results as $result)
+            <div class="bg-white rounded-xl shadow-md hover:shadow-lg transition p-4 border border-gray-100">
+                
+                <!-- Logo Ujian -->
+                @if ($result->logo)
+                    <img 
+                        src="{{ asset('storage/logos/' . $result->logo) }}" 
+                        alt="{{ $result->nama_ujian }}"
+                        class="w-full h-32 object-cover rounded-md mb-3"
+                    >
+                @else
+                    <div class="w-full h-32 bg-gray-100 rounded-md flex items-center justify-center text-gray-400 mb-3">
+                        <i class="fas fa-image text-2xl"></i>
+                    </div>
+                @endif
 
-    <h2 class="text-2xl font-bold mb-6">Report Hasil Ujian</h2>
+                <!-- Detail Ujian -->
+                <h2 class="font-semibold text-gray-800 text-lg mb-1">
+                    {{ $result->nama_ujian }}
+                </h2>
+                <p class="text-gray-500 text-sm">
+                    {{ $result->question_count }} Soal
+                </p>
+                <p class="text-gray-400 text-xs">
+                    {{ $result->duration }} menit
+                </p>
 
-    <div class="bg-white shadow rounded-lg p-4">
-        <table class="w-full border-collapse text-left">
-            <thead>
-                <tr class="bg-gray-100">
-                    <th class="px-4 py-3 border">Peserta</th>
-                    <th class="px-4 py-3 border">Email</th>
-                    <th class="px-4 py-3 border">Ujian</th>
-                    <th class="px-4 py-3 border">Nilai</th>
-                    <th class="px-4 py-3 border">Benar</th>
-                    <th class="px-4 py-3 border">Salah</th>
-                    <th class="px-4 py-3 border">Kosong</th>
-                </tr>
-            </thead>
-
-            <tbody>
-                @forelse($results as $r)
-                    <tr class="border hover:bg-gray-50">
-                        <td class="px-4 py-3">{{ $r->participant->user->name }}</td>
-                        <td class="px-4 py-3">{{ $r->participant->user->email }}</td>
-                        <td class="px-4 py-3">{{ $r->exam->nama_ujian }}</td>
-                        <td class="px-4 py-3 font-bold text-blue-600">{{ $r->score }}</td>
-                        <td class="px-4 py-3 text-green-600">{{ $r->correct_answers }}</td>
-                        <td class="px-4 py-3 text-red-600">{{ $r->wrong_answers }}</td>
-                        <td class="px-4 py-3 text-gray-600">{{ $r->empty_answers }}</td>
-                    </tr>
-                @empty
-                    <tr>
-                        <td colspan="7" class="text-center text-gray-400 py-4">
-                            Belum ada hasil ujian.
-                        </td>
-                    </tr>
-                @endforelse
-            </tbody>
-        </table>
+                <!-- Tombol Lihat Detail (Icon Mata) -->
+                <div class="mt-4 flex justify-end">
+                    <a 
+                        href="{{ route('admin.reports.show', $result->id) }}"
+                        class="w-9 h-9 flex items-center justify-center bg-blue-500 text-white rounded-full hover:bg-blue-600 transition"
+                        title="Lihat Detail"
+                    >
+                        <i class="fas fa-eye"></i>
+                    </a>
+                </div>
+            </div>
+        @empty
+            <p class="text-gray-500 italic col-span-full text-center py-10">
+                Belum ada ujian terdaftar.
+            </p>
+        @endforelse
     </div>
-
 </div>
 @endsection

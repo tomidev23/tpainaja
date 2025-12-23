@@ -124,7 +124,7 @@ public function getQuestions($examId)
     foreach ($answers as $answer) {
         $question = Question::find($answer['question_id']);
         
-        if ($question && $question->correct_answer === $answer['chosen_option']) {
+        if ($question && $question->jawaban_benar === $answer['chosen_option']) {
             $correctAnswers++;
         }
     }
@@ -138,7 +138,7 @@ public function getQuestions($examId)
         'user_id' => $user->id,
         'exam_id' => $examId,
         'score' => $totalScore,
-        'correct_answers' => $correctAnswers,
+        'jawaban_benar' => $correctAnswers,
         'total_questions' => $totalQuestions,
         'answers' => $encryptedAnswers,
         'submitted_at' => now(),
@@ -161,7 +161,7 @@ public function getQuestions($examId)
         'message' => 'Exam submitted successfully',
         'hasil_tes_id' => $hasilTes->id,
         'score' => $totalScore,
-        'correct_answers' => $correctAnswers,
+        'jawaban_benar' => $correctAnswers,
         'total_questions' => $totalQuestions,
     ], 200);
 
@@ -228,7 +228,7 @@ public function getExamDetail($hasilTesId)
                 'image' => $hasilTes->exam->questions->first()->logo ?? '', // Check for null
                 'total_questions' => $hasilTes->total_questions,
                 'score' => $hasilTes->score,
-                'correct_answers' => $hasilTes->correct_answers,
+                'jawaban_benar' => $hasilTes->jawaban_benar,
                 'submitted_at' => $hasilTes->submitted_at->format('d M Y H:i'),
                 'exam' => $hasilTes->exam,
                 'answers' => json_decode($hasilTes->answers), // Add this line to decode answers if they are JSON
@@ -254,7 +254,7 @@ public function getUserHistory(Request $request)
                 'title' => $hasil->exam->nama_ujian ?? 'Ujian Tanpa Judul',
                 'questions_logo' => $hasil->exam->logo ?? '',
                 'score' => (int) round($hasil->score),
-                'correct_answers' => (int) $hasil->correct_answers,
+                'jawaban_benar' => (int) $hasil->jawaban_benar,
                 'total_questions' => (int) $hasil->total_questions,
                 'submitted_at' => $hasil->submitted_at?->toIso8601String() ?? '',
             ];

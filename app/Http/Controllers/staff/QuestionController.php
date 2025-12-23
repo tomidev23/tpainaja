@@ -53,7 +53,7 @@ class QuestionController extends Controller
             'option_2' => 'required|string',
             'option_3' => 'required|string',
             'option_4' => 'required|string',
-            'correct_answer' => 'required|string',
+            'jawaban_benar' => 'required|string',
         ]);
 
         $exam = Exam::findOrFail($exam_id);

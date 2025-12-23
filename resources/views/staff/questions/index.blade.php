@@ -41,7 +41,7 @@
                 <tr class="hover:bg-gray-50 transition duration-150">
                     <td class="py-3 px-4 border-b">{{ $loop->iteration }}</td>
                     <td class="py-3 px-4 border-b">{{ Str::limit($q->question_text, 60) }}</td>
-                    <td class="py-3 px-4 border-b">{{ $q->correct_answer }}</td>
+                    <td class="py-3 px-4 border-b">{{ $q->jawaban_benar }}</td>
                     <td class="py-3 px-4 border-b text-center">
                         <div class="flex justify-center space-x-3">
                             <a href="{{ route('staff.questions.edit', [$exam->id, $q->id]) }}"

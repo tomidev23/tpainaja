@@ -77,6 +77,12 @@ Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
         Route::get('/', [ReportController::class, 'index'])->name('index'); // list hasil ujian
         Route::get('/{id}', [ReportController::class, 'show'])->name('show'); // detail report
     });
+     Route::post(
+        '/exams/{exam}/import-soal',
+        [QuestionController::class, 'importSoal']
+    )->name('admin.exam.importSoal');
+
+
 
     // Profile
     Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');

@@ -35,11 +35,5 @@ class Exam extends Model
         return $this->hasMany(HasilTes::class, "exam_id");  // Relasi hasMany dengan HasilTes
     }
 
-    // Mendapatkan data dengan soal dan pilihan jawaban terkait
-    public function getExamWithQuestions($examId)
-    {
-        // Mengambil data exam beserta soal dan pilihan jawabannya
-        return $this->with('questions.options')->find($examId);
-    }
     
 }

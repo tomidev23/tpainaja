@@ -12,7 +12,7 @@ class ExamResult extends Model
     protected $fillable = [
         'participant_id',
         'exam_id',
-        'correct_answers',
+        'jawaban_benar',
         'wrong_answers',
         'empty_answers',
         'score',
