@@ -3,48 +3,59 @@
 namespace App\Imports;
 
 use App\Models\Question;
-use Illuminate\Validation\Rule;
-use Maatwebsite\Excel\Concerns\{
-    ToModel,
-    WithHeadingRow,
-    WithValidation,
-    SkipsEmptyRows
-};
+use Maatwebsite\Excel\Concerns\ToModel;
+use Maatwebsite\Excel\Concerns\WithHeadingRow;
 
-class QuestionsImport implements ToModel, WithHeadingRow, WithValidation, SkipsEmptyRows
+class QuestionsImport implements ToModel, WithHeadingRow
 {
-    protected int $examId;
+    protected $examId;
 
-    public function __construct(int $examId)
+    public function __construct($examId)
     {
         $this->examId = $examId;
     }
 
+    /**
+    * @param array $row
+    *
+    * @return \Illuminate\Database\Eloquent\Model|null
+    */
     public function model(array $row)
     {
+        // 1. Cari kolom SOAL (bisa 'soal', 'pertanyaan', 'question')
+        $soal = $row['soal'] ?? $row['pertanyaan'] ?? $row['question'] ?? null;
+
+        // 2. Cari kolom KUNCI JAWABAN (bisa 'jawaban_benar', 'kunci', 'answer')
+        $kunci = $row['jawaban_benar'] ?? $row['kunci'] ?? $row['kunci_jawaban'] ?? $row['answer'] ?? null;
+
+        // Jika soal atau kunci tidak ada, skip baris ini
+        if (!$soal || !$kunci) {
+            return null;
+        }
+
         return new Question([
-            'exam_id'        => $this->examId,
-            'question_text' => $row['question_text'],
-            'option_a'      => $row['option_a'],
-            'option_b'      => $row['option_b'],
-            'option_c'      => $row['option_c'],
-            'option_d'      => $row['option_d'],
-            'jawaban_benar' => strtoupper($row['jawaban_benar']),
-            'skor_maks'     => $row['skor_maks'] ?? 1,
-            'jenis_soal'    => 'pilihan_ganda',
+            'exam_id'       => $this->examId,
+            'question_text' => $soal,
+            
+            // Mapping Pilihan A
+            'option_a'      => $row['pilihan_a'] ?? $row['a'] ?? $row['opsi_a'] ?? $row['option_a'] ?? null,
+            
+            // Mapping Pilihan B
+            'option_b'      => $row['pilihan_b'] ?? $row['b'] ?? $row['opsi_b'] ?? $row['option_b'] ?? null,
+            
+            // Mapping Pilihan C
+            'option_c'      => $row['pilihan_c'] ?? $row['c'] ?? $row['opsi_c'] ?? $row['option_c'] ?? null,
+            
+            // Mapping Pilihan D
+            'option_d'      => $row['pilihan_d'] ?? $row['d'] ?? $row['opsi_d'] ?? $row['option_d'] ?? null,
+            
+            // Mapping Pilihan E (jika ada)
+            'option_e'      => $row['pilihan_e'] ?? $row['e'] ?? $row['opsi_e'] ?? $row['option_e'] ?? null,
+            
+            'jawaban_benar' => $kunci,
+            'jenis_soal'    => 'pilihan_ganda', // Default set ke pilihan ganda
+            'skor_maks'     => 1,
             'aktif'         => 1,
         ]);
-    }
-
-    public function rules(): array
-    {
-        return [
-            'question_text' => 'required',
-            'option_a'      => 'required',
-            'option_b'      => 'required',
-            'option_c'      => 'required',
-            'option_d'      => 'required',
-            'jawaban_benar' => ['required', Rule::in(['A','B','C','D'])],
-        ];
     }
 }

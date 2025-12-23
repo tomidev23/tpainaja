@@ -10,7 +10,6 @@ use Illuminate\Support\Facades\Storage;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\QuestionsImport;
 
-
 class QuestionController extends Controller
 {
     /**
@@ -19,7 +18,11 @@ class QuestionController extends Controller
     public function index(Request $request, $exam_id)
     {
         $exam = Exam::findOrFail($exam_id);
-        $questions = $exam->questions;
+        
+        // Mengambil soal-soal terkait ujian ini
+        $questions = Question::where('exam_id', $exam->id)
+            ->orderBy('id', 'asc')
+            ->get();
 
         // API request
         if ($request->wantsJson()) {
@@ -47,88 +50,88 @@ class QuestionController extends Controller
     /**
      * Simpan soal baru
      */
- public function store(Request $request, $exam_id)
-{
-    $type = $request->question_type;
+    public function store(Request $request, $exam_id)
+    {
+        $type = $request->question_type;
 
-    // Aturan dasar
-    $baseRules = [
-        'question_text' => 'required|string',
-        'question_file' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
-    ];
+        // Aturan dasar
+        $baseRules = [
+            'question_text' => 'required|string',
+            'question_file' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
+        ];
 
-    if ($type == 'multiple_choice') {
-        $rules = array_merge($baseRules, [
-            'option_a'      => 'required|string',
-            'option_b'      => 'required|string',
-            'option_c'      => 'required|string',
-            'option_d'      => 'required|string',
-            'jawaban_benar'=> 'required|string|in:A,B,C,D',
-        ]);
-    } elseif ($type == 'essay') {
-        $rules = array_merge($baseRules, [
-            'essay_answer'  => 'required|string',
-        ]);
-    } elseif ($type == 'true_false') {
-        $rules = array_merge($baseRules, [
-            'jawaban_benar'=> 'required|in:true,false',
-        ]);
-    } else {
-        // kalau ada tipe lain, bisa tambahkan di sini
-        abort(400, 'Jenis soal tidak dikenal');
-    }
+        if ($type == 'multiple_choice') {
+            $rules = array_merge($baseRules, [
+                'option_a'      => 'required|string',
+                'option_b'      => 'required|string',
+                'option_c'      => 'required|string',
+                'option_d'      => 'required|string',
+                'jawaban_benar' => 'required|string|in:A,B,C,D',
+            ]);
+        } elseif ($type == 'essay') {
+            $rules = array_merge($baseRules, [
+                'essay_answer'  => 'required|string',
+            ]);
+        } elseif ($type == 'true_false') {
+            $rules = array_merge($baseRules, [
+                'jawaban_benar' => 'required|in:true,false',
+            ]);
+        } else {
+            abort(400, 'Jenis soal tidak dikenal');
+        }
 
-     $validated = $request->validate($rules);
+        $validated = $request->validate($rules);
 
-    $exam = Exam::findOrFail($exam_id);
+        $exam = Exam::findOrFail($exam_id);
 
-    // Upload file
-    $questionFilePath = null;
-    if ($request->hasFile('question_file')) {
-        $questionFilePath = $request->file('question_file')->store('questions', 'public');
-    }
-
-    $jenisSoalMap = [
-        'multiple_choice' => 'pilihan_ganda',
-        'essay'           => 'esai',
-        'true_false'      => 'benar_salah',
-    ];
-
-    $data = [
-        'exam_id'       => $exam->id,
-        'question_text' => $validated['question_text'],
-        'jenis_soal'    => $jenisSoalMap[$type],
-        'question_file' => $questionFilePath,
-        'skor_maks'     => 1,
-        'aktif'         => 1,
-    ];
-
-    if ($type == 'multiple_choice') {
-        $data['option_a'] = $validated['option_a'];
-        $data['option_b'] = $validated['option_b'];
-        $data['option_c'] = $validated['option_c'];
-        $data['option_d'] = $validated['option_d'];
-        $data['jawaban_benar'] = $validated['jawaban_benar']; // A/B/C/D
-    } elseif ($type == 'essay') {
-        $data['option_a'] = '-';
-        $data['option_b'] = '-';
-        $data['option_c'] = '-';
-        $data['option_d'] = '-';
-        $data['jawaban_benar'] = $validated['essay_answer'];
-    } elseif ($type == 'true_false') {
-        $data['option_a'] = '-';
-        $data['option_b'] = '-';
-        $data['option_c'] = '-';
-        $data['option_d'] = '-';
-        $data['jawaban_benar'] = $validated['jawaban_benar']; // true/false
-    }
-
-    $exam->questions()->create($data);
-
-    return redirect()
-        ->route('admin.questions.index', $exam_id)
-        ->with('success', 'Soal berhasil ditambahkan!');
+        // Upload file
+        $questionFilePath = null;
+       if ($request->hasFile('question_file')) {
+    $questionFilePath = $request->file('question_file')->store('questions', 'public');
 }
+
+        $jenisSoalMap = [
+            'multiple_choice' => 'pilihan_ganda',
+            'essay'           => 'esai',
+            'true_false'      => 'benar_salah',
+        ];
+
+        $data = [
+            'exam_id'       => $exam->id,
+            'question_text' => $validated['question_text'],
+            'jenis_soal'    => $jenisSoalMap[$type],
+            'question_file' => $questionFilePath,
+            'skor_maks'     => 1,
+            'aktif'         => 1,
+        ];
+
+        if ($type == 'multiple_choice') {
+            $data['option_a'] = $validated['option_a'];
+            $data['option_b'] = $validated['option_b'];
+            $data['option_c'] = $validated['option_c'];
+            $data['option_d'] = $validated['option_d'];
+            $data['jawaban_benar'] = $validated['jawaban_benar']; // A/B/C/D
+        } elseif ($type == 'essay') {
+            $data['option_a'] = '-';
+            $data['option_b'] = '-';
+            $data['option_c'] = '-';
+            $data['option_d'] = '-';
+            $data['jawaban_benar'] = $validated['essay_answer'];
+        } elseif ($type == 'true_false') {
+            $data['option_a'] = '-';
+            $data['option_b'] = '-';
+            $data['option_c'] = '-';
+            $data['option_d'] = '-';
+            $data['jawaban_benar'] = $validated['jawaban_benar']; // true/false
+        }
+
+        $exam->questions()->create($data);
+
+        return redirect()
+            ->route('admin.questions.index', $exam_id)
+            ->with('success', 'Soal berhasil ditambahkan!');
+    }
+
     /**
      * Edit soal
      */
@@ -143,38 +146,54 @@ class QuestionController extends Controller
     /**
      * Update soal
      */
-    public function update(Request $request, $exam_id, $id)
-    {
-        $validated = $request->validate([
-            'question_text' => 'required|string',
-            'option_a' => 'required|string|max:255',
-            'option_b' => 'required|string|max:255',
-            'option_c' => 'required|string|max:255',
-            'option_d' => 'required|string|max:255',
-            'jawaban_benar' => 'required|in:A,B,C,D',
-            'question_file' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
-        ]);
+    
+  public function update(Request $request, $exam_id, $id)
+{
+    
+    $validated = $request->validate([
+        'question_text' => 'required|string',
+        'option_a'      => 'nullable|string|max:255',
+        'option_b'      => 'nullable|string|max:255',
+        'option_c'      => 'nullable|string|max:255',
+        'option_d'      => 'nullable|string|max:255',
+        'jawaban_benar' => 'required|string',
+        'question_file' => 'nullable|file|mimes:jpg,jpeg,png,gif,pdf,mp3,wav,ogg|max:20480',
+    ]);
 
-        $question = Question::findOrFail($id);
+    $question = Question::findOrFail($id);
 
-        // Replace file jika upload baru
-        if ($request->hasFile('question_file')) {
-            if ($question->question_file && Storage::disk('public')->exists($question->question_file)) {
-                Storage::disk('public')->delete($question->question_file);
-            }
+    // Siapkan data dasar (tanpa question_file dulu)
+    $data = [
+        'question_text' => $validated['question_text'],
+        'option_a'      => $validated['option_a'] ?? $question->option_a,
+        'option_b'      => $validated['option_b'] ?? $question->option_b,
+        'option_c'      => $validated['option_c'] ?? $question->option_c,
+        'option_d'      => $validated['option_d'] ?? $question->option_d,
+        'jawaban_benar' => $validated['jawaban_benar'],
+    ];
 
-            $validated['question_file'] = 
-                $request->file('question_file')->store('questions', 'public');
+    // Hanya proses file jika ada upload baru
+    if ($request->hasFile('question_file')) {
+        // Hapus file lama jika ada
+        if ($question->question_file) {
+            Storage::disk('public')->delete($question->question_file);
         }
 
-        $question->update($validated);
-
-        return redirect()
-            ->route('admin.questions.index', $exam_id)
-            ->with('success', 'Soal berhasil diperbarui!');
+        // Simpan file baru
+        $filePath = $request->file('question_file')->store('questions', 'public');
+        $data['question_file'] = $filePath; // ← hanya set kalau ada file baru!
     }
+    // ⚠️ Jika tidak ada file baru, jangan sentuh question_file sama sekali!
 
-    /**
+    $question->update($data); // ← hanya update field yang ada di $data
+
+    return redirect()
+        ->route('admin.questions.index', $exam_id)
+        ->with('success', 'Soal berhasil diperbarui!');
+        
+}
+
+    /**a
      * Hapus soal
      */
     public function destroy($exam_id, $id)
@@ -192,27 +211,25 @@ class QuestionController extends Controller
             ->with('success', 'Soal berhasil dihapus!');
     }
 
+    /**
+     * Import soal dari Excel
+     */
+    public function importSoal(Request $request, $exam)
+    {
+        $request->validate([
+            'file' => 'required|mimes:xlsx,xls'
+        ]);
 
-public function importSoal(Request $request, Exam $exam)
-{
-    $request->validate([
-        'file' => 'required|mimes:xlsx,xls'
-    ]);
+        // Handle jika $exam adalah Model (Route Model Binding) atau ID biasa
+        $examId = ($exam instanceof Exam) ? $exam->id : $exam;
 
-    Excel::import(new QuestionsImport($exam->id), $request->file('file'));
-
-    return back()->with('success', 'Soal berhasil diimport');
-}
-
-public function questions($examId)
-{
-    $exam = Exam::findOrFail($examId);
-
-    $questions = Question::where('exam_id', $exam->id)
-        ->orderBy('id', 'asc')
-        ->get();
-
-    return view('admin.questions.index', compact('exam', 'questions'));
-}
-
+        try {
+            Excel::import(new QuestionsImport($examId), $request->file('file'));
+            
+            return redirect()->route('admin.questions.index', $examId)
+                             ->with('success', 'Soal berhasil diimport!');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Gagal import: ' . $e->getMessage());
+        }
+    }
 }
