@@ -22,7 +22,7 @@ class ExamController extends Controller
         Log::info('Fetching all exams with questions.');
 
         // Get exams with questions and their options
-        $exams = Exam::with('questions.options')
+        $exams = Exam::with('questions')
          ->where('is_completed', false)
          ->get();
 
