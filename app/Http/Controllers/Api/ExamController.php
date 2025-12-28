@@ -135,7 +135,7 @@ public function getQuestions($examId)
         'exam_id' => 'required|exists:exams,id',
         'answers' => 'required|array',
         'answers.*.question_id' => 'required|exists:questions,id',
-        'answers.*.chosen_option' => 'required|string|in:a,b,c,d,option_a,option_b,option_c,option_d',
+        'answers.*.chosen_option' => 'required|string|in:a,b,c,d,option_a,option_b,option_c,option_d,A,B,C,D',
     ]);
 
     if ($validator->fails()) {
@@ -149,8 +149,7 @@ public function getQuestions($examId)
     $answers = $request->answers;
 
     // Enkripsi jawaban peserta
-    $encryptedAnswers = Crypt::encryptString(json_encode($answers)); // Enkripsi jawaban
-
+$encryptedAnswers = json_encode($answers);
     // Hitung skor
     $totalScore = 0;
     $correctAnswers = 0;
@@ -180,11 +179,10 @@ public function getQuestions($examId)
     ]);
 
     // ✅ Update is_completed di tabel exams untuk exam ini
-    $exam = Exam::find($examId);
-    if ($exam) {
-        $exam->is_completed = true; // tandai sudah selesai
-        $exam->save();
-    }
+   $exam = Exam::find($examId);
+if ($exam) {
+    $exam->update(['is_completed' => true]); // ✅ pakai update()
+}
 
     Log::info('Exam result submitted', [
         'user_id' => $user->id,
