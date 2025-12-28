@@ -16,8 +16,8 @@ class Option extends Model
     ];
 
     // Relasi dengan Question
-   public function question()
+    public function question()
     {
-        return $this->belongsTo(Question::class);  // Relasi belongsTo dengan Question
+        return $this->belongsTo(Question::class, 'question_id'); // ✅
     }
 }

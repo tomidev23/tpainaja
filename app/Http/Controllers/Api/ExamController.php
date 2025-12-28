@@ -35,22 +35,57 @@ class ExamController extends Controller
     /**
      * Get specific exam detail
      */
-    public function show($id)
-    {
-        $exam = Exam::with('questions.options')->find($id);
-
+   // ExamController.php
+public function show($id)
+{
+    try {
+        // Ambil exam tanpa eager loading dulu (test dasar)
+        $exam = Exam::where('id', $id)->first();
         if (!$exam) {
             return response()->json([
-                'status' => 'error',
-                'message' => 'Exam not found',
+                'message' => 'Ujian tidak ditemukan',
             ], 404);
         }
 
+        // Ambil questions terpisah (lebih aman)
+        $questions = Question::where('exam_id', $exam->id)
+            ->where('aktif', 1)
+            ->get();
+
+        // Bangun data manual — hindari asset() di null
+        $examData = [
+            'id' => $exam->id,
+            'nama_ujian' => $exam->nama_ujian,
+            'duration' => (int) $exam->duration,
+            'question_count' => $questions->count(),
+            'logo' => $exam->logo ? "storage/{$exam->logo}" : null,
+            'questions' => $questions->map(function ($q) {
+                return [
+                    'id' => $q->id,
+                    'question_text' => $q->question_text,
+                    'question_file' => $q->question_file ? "storage/{$q->question_file}" : null,
+                    'option_a' => $q->option_a,
+                    'option_b' => $q->option_b,
+                    'option_c' => $q->option_c,
+                    'option_d' => $q->option_d,
+                    'jawaban_benar' => $q->jawaban_benar,
+                ];
+            })->toArray(),
+        ];
+
         return response()->json([
             'status' => 'success',
-            'data' => $exam,
-        ], 200);
+            'data' => $examData,
+        ]);
+
+    } catch (\Exception $e) {
+        Log::error("Exam show error (id=$id): " . $e->getMessage());
+        return response()->json([
+            'message' => 'Gagal memuat data ujian',
+            'debug' => config('app.debug') ? $e->getMessage() : null,
+        ], 500);
     }
+}
 
     /**
      * Get questions for specific exam

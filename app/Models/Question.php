@@ -24,11 +24,14 @@ class Question extends Model
 
 
     // Relasi dengan model Exam
-    public function exam()
+      public function exam()
     {
-        return $this->belongsTo(Exam::class);
+        return $this->belongsTo(Exam::class, 'exam_id'); 
     }
 
-    
+    public function options()
+    {
+        return $this->hasMany(Option::class, 'question_id'); 
+    }
 
 }
