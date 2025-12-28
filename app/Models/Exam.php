@@ -4,9 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use App\Models\Question;
-use App\Models\HasilTes;
-use App\Models\Option;
 
 class Exam extends Model
 {
@@ -24,28 +21,25 @@ class Exam extends Model
         'logo',
     ];
 
-    // Relasi dengan Question
-  public function questions()
-{
-    return $this->hasMany(Question::class);
-}
+    public function questions()
+    {
+        return $this->hasMany(Question::class, 'exam_id');
+    }
 
     // Relasi dengan HasilTes
     public function hasilTes()
     {
-        return $this->hasMany(HasilTes::class);  // Relasi hasMany dengan HasilTes
+        return $this->hasMany(HasilTes::class);
     }
 
     // Mendapatkan data dengan soal dan pilihan jawaban terkait
     public function getExamWithQuestions($examId)
     {
-        // Mengambil data exam beserta soal dan pilihan jawabannya
         return $this->with('questions.options')->find($examId);
     }
 
     public function results()
-{
-    return $this->hasMany(ExamResult::class);
-}
-
+    {
+        return $this->hasMany(ExamResult::class);
+    }
 }
