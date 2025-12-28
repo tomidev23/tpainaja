@@ -135,7 +135,7 @@ public function getQuestions($examId)
         'exam_id' => 'required|exists:exams,id',
         'answers' => 'required|array',
         'answers.*.question_id' => 'required|exists:questions,id',
-        'answers.*.chosen_option' => 'required|string|in:a,b,c,d,option_a,option_b,option_c,option_d',
+        'answers.*.chosen_option' => 'required|string|in:a,b,c,d,option_a,option_b,option_c,option_d,A,B,C,D',
     ]);
 
     if ($validator->fails()) {
