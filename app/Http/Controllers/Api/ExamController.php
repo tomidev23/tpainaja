@@ -201,7 +201,6 @@ public function getExamDetail($hasilTesId)
     $user = Auth::user();
     if (!$user) return response()->json(['message' => 'Unauthenticated'], 401);
 
-    // ✅ Ambil hasil tes lengkap dengan exam & questions
     $hasilTes = HasilTes::with(['exam.questions'])
         ->where('id', $hasilTesId)
         ->where('user_id', $user->id)
@@ -214,7 +213,7 @@ public function getExamDetail($hasilTesId)
         ? json_decode($hasilTes->answers, true) 
         : $hasilTes->answers;
 
-    // ✅ Bangun detail soal dengan jawaban user
+    // ✅ Bangun data soal dengan jawaban user
     $questionsData = [];
     foreach ($hasilTes->exam->questions as $index => $q) {
         $userAns = collect($answers)->firstWhere('question_id', $q->id);
@@ -227,8 +226,8 @@ public function getExamDetail($hasilTesId)
         }
 
         // Cari index opsi (A=0, B=1, C=2, D=3)
-        $userIndex = ['A','B','C','D'][array_search($userLetter, ['A','B','C','D'])] ?? null;
-        $correctIndex = ['A','B','C','D'][array_search(strtoupper($q->jawaban_benar ?? 'A'), ['A','B','C','D'])] ?? 0;
+        $userIndex = array_search($userLetter, ['A','B','C','D']);
+        $correctIndex = array_search(strtoupper($q->jawaban_benar ?? 'A'), ['A','B','C','D']);
 
         $questionsData[] = [
             'number' => $index + 1,
@@ -239,8 +238,8 @@ public function getExamDetail($hasilTesId)
                 $q->option_c,
                 $q->option_d,
             ],
-            'correct_option_index' => $correctIndex,
-            'user_answer_index' => $userIndex,
+            'correct_option_index' => $correctIndex !== false ? $correctIndex : 0,
+            'user_answer_index' => $userIndex !== false ? $userIndex : null,
             'is_correct' => $userLetter === strtoupper($q->jawaban_benar ?? ''),
         ];
     }
@@ -260,9 +259,6 @@ public function getExamDetail($hasilTesId)
         ],
     ], 200);
 }
-
-
-
     /**
      * Get exam result detail
      */
