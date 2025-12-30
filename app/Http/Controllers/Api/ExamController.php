@@ -257,42 +257,33 @@ public function getExamDetail($hasilTesId)
     /**
      * Get exam result detail
      */
-    public function getHasilUjian($hasilTesId)
-    {
-        $user = Auth::user();
+  public function getHasilUjian($hasilTesId)
+{
+    $user = Auth::user();
+    if (!$user) return response()->json(['message' => 'Unauthenticated'], 401);
 
-        if (!$user) {
-            return response()->json([
-                'message' => 'Unauthenticated',
-            ], 401);
-        }
+    $hasilTes = HasilTes::with(['exam.questions', 'user'])
+        ->where('id', $hasilTesId)
+        ->where('user_id', $user->id)
+        ->first();
 
-        $hasilTes = HasilTes::with(['exam.questions', 'user'])
-            ->where('id', $hasilTesId)
-            ->where('user_id', $user->id) 
-            ->first();
+    if (!$hasilTes) return response()->json(['message' => 'Not found'], 404);
 
-        if (!$hasilTes) {
-            return response()->json([
-                'message' => 'Exam result not found',
-            ], 404);
-        }
-
-        return response()->json([
-    'status' => 'success',
-    'data' => [
-        'id' => $hasilTes->id,
-        'title' => $hasilTes->exam->nama_ujian ?? 'No title',
-        'image' => $hasilTes->exam->logo ?? $hasilTes->exam->questions?->first()?->logo ?? '',
-        'total_questions' => $hasilTes->total_questions,
-        'score' => $hasilTes->score,
-        'jawaban_benar' => (int) $hasilTes->correct_answers, // ✅ tanpa null coalescing
-        'submitted_at' => $hasilTes->submitted_at?->format('d M Y H:i') ?? '',
-        'exam' => $hasilTes->exam,
-        'answers' => $hasilTes->answers, // ✅ langsung array
-    ],
-], 200);
-    }
+    return response()->json([
+        'status' => 'success',
+        'data' => [
+            'id' => $hasilTes->id,
+            'title' => $hasilTes->exam?->nama_ujian ?? 'Ujian',
+            'image' => $hasilTes->exam?->logo ?? '', // ✅ lebih aman
+            'total_questions' => (int) $hasilTes->total_questions,
+            'score' => (float) $hasilTes->score,
+            'jawaban_benar' => (int) $hasilTes->correct_answers,
+            'submitted_at' => $hasilTes->submitted_at?->format('d M Y H:i') ?? '',
+            'exam' => $hasilTes->exam,
+            'answers' => $hasilTes->answers, // ✅ tanpa json_decode
+        ],
+    ], 200);
+}
   /**
  * Get current user's exam history
  */
