@@ -244,7 +244,7 @@ public function getExamDetail($hasilTesId)
 
         $hasilTes = HasilTes::with(['exam.questions', 'user'])
             ->where('id', $hasilTesId)
-            ->where('user_id', $user->id) // Ensure user can only see their own result
+            ->where('user_id', $user->id) 
             ->first();
 
         if (!$hasilTes) {
@@ -261,7 +261,7 @@ public function getExamDetail($hasilTesId)
                 'image' => $hasilTes->exam->questions->first()->logo ?? '', // Check for null
                 'total_questions' => $hasilTes->total_questions,
                 'score' => $hasilTes->score,
-                'jawaban_benar' => $hasilTes->jawaban_benar,
+                'jawaban_benar' => (int) ($hasilTes->correct_answers ?? 0), 
                 'submitted_at' => $hasilTes->submitted_at->format('d M Y H:i'),
                 'exam' => $hasilTes->exam,
                 'answers' => json_decode($hasilTes->answers), // Add this line to decode answers if they are JSON
@@ -287,8 +287,7 @@ public function getUserHistory(Request $request)
                 'title' => $hasil->exam->nama_ujian ?? 'Ujian Tanpa Judul',
                 'questions_logo' => $hasil->exam->logo ?? '',
                 'score' => (int) round($hasil->score),
-                'jawaban_benar' => (int) $hasil->jawaban_benar,
-                'total_questions' => (int) $hasil->total_questions,
+                'jawaban_benar' => (int) ($hasil->correct_answers ?? 0), // ✅                'total_questions' => (int) $hasil->total_questions,
                 'submitted_at' => $hasil->submitted_at?->toIso8601String() ?? '',
             ];
         });
