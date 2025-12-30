@@ -151,29 +151,35 @@ public function submitResult(Request $request)
     // Enkripsi jawaban peserta
     $encryptedAnswers = json_encode($answers);
     
-    // Hitung skor
-    $totalScore = 0;
-    $correctAnswers = 0;
-    $totalQuestions = count($answers);
+   // ✅ HITUNG SKOR — VERSI FINAL (100% WORK)
+$correctAnswers = 0;
+$totalQuestions = count($answers);
 
-    foreach ($answers as $answer) {
-        $question = Question::find($answer['question_id']);
+foreach ($answers as $answer) {
+    // Ambil soal dengan select eksplisit (hindari hidden field)
+    $question = Question::select('id', 'jawaban_benar')
+        ->where('id', $answer['question_id'])
+        ->first();
+    
+    if ($question && !empty($question->jawaban_benar)) {
+        // Normalisasi jawaban benar: ambil HANYA huruf A-D
+        $correct = preg_replace('/[^A-D]/i', '', strtoupper($question->jawaban_benar));
         
-        if ($question) {
-            // ✅ Normalisasi ke uppercase untuk perbandingan case-insensitive
-            $correctAnswer = strtoupper(trim($question->jawaban_benar ?? ''));
-            $userAnswer = strtoupper(trim($answer['chosen_option'] ?? ''));
-            
-            // ✅ Konversi opsi teks ke huruf (jika dikirim "option_a", ubah jadi "A")
-            if (strpos($userAnswer, 'OPTION_') === 0) {
-                $userAnswer = strtoupper(substr($userAnswer, 7, 1)); // ambil huruf setelah "option_"
-            }
-            
-            if ($correctAnswer === $userAnswer) {
-                $correctAnswers++;
-            }
+        // Normalisasi jawaban user
+        $userRaw = $answer['chosen_option'] ?? '';
+        $user = preg_replace('/[^A-D]/i', '', strtoupper($userRaw));
+        
+        // Log untuk debug (hapus setelah work)
+        Log::info("Soal {$question->id}: DB='{$question->jawaban_benar}', Normalized='$correct', User='$user'");
+        
+        if ($correct === $user && strlen($correct) === 1) {
+            $correctAnswers++;
         }
     }
+}
+
+$totalScore = $totalQuestions > 0 ? round(($correctAnswers / $totalQuestions) * 100, 2) : 0;
+
 
     if ($totalQuestions > 0) {
         $totalScore = round(($correctAnswers / $totalQuestions) * 100, 2);
@@ -273,20 +279,19 @@ public function getExamDetail($hasilTesId)
         }
 
         return response()->json([
-            'status' => 'success',
-            'data' => [
-                'id' => $hasilTes->id,
-                'title' => $hasilTes->exam->nama_ujian ?? 'No title',
-                'image' => $hasilTes->exam->questions->first()->logo ?? '', // Check for null
-                'total_questions' => $hasilTes->total_questions,
-                'score' => $hasilTes->score,
-                'jawaban_benar' => (int) ($hasilTes->correct_answers ?? 0), 
-                'submitted_at' => $hasilTes->submitted_at->format('d M Y H:i'),
-                'exam' => $hasilTes->exam,
-                'answers' => json_decode($hasilTes->answers), // Add this line to decode answers if they are JSON
-
-            ],
-        ], 200);
+    'status' => 'success',
+    'data' => [
+        'id' => $hasilTes->id,
+        'title' => $hasilTes->exam->nama_ujian ?? 'No title',
+        'image' => $hasilTes->exam->logo ?? $hasilTes->exam->questions?->first()?->logo ?? '',
+        'total_questions' => $hasilTes->total_questions,
+        'score' => $hasilTes->score,
+        'jawaban_benar' => (int) $hasilTes->correct_answers, // ✅ tanpa null coalescing
+        'submitted_at' => $hasilTes->submitted_at?->format('d M Y H:i') ?? '',
+        'exam' => $hasilTes->exam,
+        'answers' => $hasilTes->answers, // ✅ langsung array
+    ],
+], 200);
     }
   /**
  * Get current user's exam history

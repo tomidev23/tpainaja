@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\User; // ✅ tambahkan import
 use App\Models\Exam;
 
 class HasilTes extends Model
@@ -12,11 +13,12 @@ class HasilTes extends Model
 
     protected $table = 'hasil_tes';
 
+    // ✅ Perbaiki $fillable — sesuaikan dengan nama kolom di DB
     protected $fillable = [
         'user_id',
         'exam_id',
         'score',
-        'jawaban_benar',
+        'correct_answers', // ✅ BENAR — sesuai DB
         'total_questions',
         'answers',
         'submitted_at',
@@ -44,14 +46,15 @@ class HasilTes extends Model
         return $this->belongsTo(Exam::class, 'exam_id');
     }
 
-    // Hapus relasi 'answers' karena bukan relasi ke model lain, tapi kolom JSON
-    public function getAnswersAttribute($value)
-    {
-        return json_decode($value);  // Mengembalikan answers sebagai array
-    }
+    // ✅ Perbaiki accessor — konsisten dengan API
     public function getJawabanBenarAttribute()
-{
-    return $this->correct_answers;
-}
-    
+    {
+        return $this->correct_answers; // ✅ sekarang correct_answers tersimpan
+    }
+
+    // ✅ Opsional: agar $hasilTes->jawaban_benar bisa di-set
+    public function setJawabanBenarAttribute($value)
+    {
+        $this->attributes['correct_answers'] = $value;
+    }
 }
