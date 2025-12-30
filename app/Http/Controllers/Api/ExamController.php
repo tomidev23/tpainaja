@@ -39,7 +39,6 @@ class ExamController extends Controller
 public function show($id)
 {
     try {
-        // Ambil exam tanpa eager loading dulu (test dasar)
         $exam = Exam::where('id', $id)->first();
         if (!$exam) {
             return response()->json([
@@ -47,28 +46,33 @@ public function show($id)
             ], 404);
         }
 
-        // Ambil questions terpisah (lebih aman)
+        // Ambil soal yang aktif
         $questions = Question::where('exam_id', $exam->id)
             ->where('aktif', 1)
             ->get();
 
-        // Bangun data manual — hindari asset() di null
+        // Bangun data sesuai dengan kebutuhan frontend
         $examData = [
             'id' => $exam->id,
             'nama_ujian' => $exam->nama_ujian,
-            'duration' => (int) $exam->duration,
-            'question_count' => $questions->count(),
-            'logo' => $exam->logo ? "storage/{$exam->logo}" : null,
+            'exam_logo_url' => $exam->logo ? url("storage/{$exam->logo}") : '',
+            'score' => 0, // Belum ada skor di sini, bisa ditambahkan jika perlu
+            'correct_answers' => 0, // Belum ada informasi jawaban benar, bisa ditambahkan jika perlu
+            'total_questions' => $questions->count(),
+            'submitted_at' => now()->toIso8601String(), // Waktu saat ini, bisa diganti sesuai dengan kebutuhan
             'questions' => $questions->map(function ($q) {
                 return [
-                    'id' => $q->id,
-                    'question_text' => $q->question_text,
-                    'question_file' => $q->question_file ? "storage/{$q->question_file}" : null,
-                    'option_a' => $q->option_a,
-                    'option_b' => $q->option_b,
-                    'option_c' => $q->option_c,
-                    'option_d' => $q->option_d,
-                    'jawaban_benar' => $q->jawaban_benar,
+                    'number' => $q->id,
+                    'question_text' => $q->question_text ?? 'Soal tidak tersedia',
+                    'options' => [
+                        $q->option_a ?? 'Opsi A',
+                        $q->option_b ?? 'Opsi B',
+                        $q->option_c ?? 'Opsi C',
+                        $q->option_d ?? 'Opsi D',
+                    ],
+                    'correct_option_index' => array_search($q->jawaban_benar, ['A', 'B', 'C', 'D']),
+                    'user_answer_index' => null, // Ini bisa diisi nanti setelah user mengirim jawaban
+                    'is_correct' => false, // Ini juga bisa dihitung setelah validasi jawaban
                 ];
             })->toArray(),
         ];
@@ -299,21 +303,26 @@ public function getExamDetail($hasilTesId)
  */
 public function getUserHistory(Request $request)
 {
-    $user = $request->user(); // ✅ dari token, otomatis
+    $user = $request->user(); // Ambil user dari token
 
-    $history = HasilTes::with('exam')
-        ->where('user_id', $user->id) // ✅ aman: hanya data milik user ini
+    $history = HasilTes::with('exam') // Ambil hasil tes dengan relasi exam
+        ->where('user_id', $user->id) // Pastikan hanya data milik user ini
         ->orderBy('submitted_at', 'desc')
         ->get()
         ->map(function ($hasil) {
+            // Format data untuk setiap history ujian
             return [
                 'id' => $hasil->id,
                 'exam_id' => $hasil->exam_id,
                 'title' => $hasil->exam->nama_ujian ?? 'Ujian Tanpa Judul',
-                'questions_logo' => $hasil->exam->logo ?? '',
+                'exam_logo_url' => $hasil->exam->logo 
+                    ? url("storage/{$hasil->exam->logo}") 
+                    : '', // URL logo ujian
                 'score' => (int) round($hasil->score),
-                'jawaban_benar' => (int) ($hasil->correct_answers ?? 0), // ✅                'total_questions' => (int) $hasil->total_questions,
-                'submitted_at' => $hasil->submitted_at?->toIso8601String() ?? '',
+                'correct_answers' => (int) ($hasil->correct_answers ?? 0),
+                'total_questions' => (int) ($hasil->total_questions ?? 0), // Pastikan total pertanyaan ada
+                'submitted_at' => $hasil->submitted_at?->toIso8601String() ?? '', // Format tanggal
+                'questions' => $this->getExamQuestions($hasil->exam_id), // Ambil soal terkait
             ];
         });
 
@@ -322,5 +331,27 @@ public function getUserHistory(Request $request)
         'data' => $history,
     ]);
 }
+
+private function getExamQuestions($examId)
+{
+    // Ambil soal terkait ujian
+    $exam = Exam::with('questions')->find($examId);
+    if (!$exam) return [];
+
+    return $exam->questions->map(function ($q) {
+        return [
+            'id' => $q->id,
+            'question_text' => $q->question_text ?? 'Soal tidak tersedia',
+            'options' => [
+                $q->option_a ?? 'Opsi A',
+                $q->option_b ?? 'Opsi B',
+                $q->option_c ?? 'Opsi C',
+                $q->option_d ?? 'Opsi D',
+            ],
+            'correct_option_index' => array_search($q->jawaban_benar, ['A', 'B', 'C', 'D']),
+        ];
+    });
+}
+
 
 }
