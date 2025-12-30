@@ -57,6 +57,7 @@ $examData = [
     'id' => $exam->id,
     'nama_ujian' => $exam->nama_ujian,
     'exam_logo_url' => $exam->logo ? url("storage/{$exam->logo}") : '',
+    'questions_files' => $exam->questions_file,
     'score' => 0, // Skor di sini perlu dihitung (misalnya berdasarkan jawaban yang benar)
     'correct_answers' => 0, // Total jawaban benar, dihitung dari hasil tes
     'total_questions' => $questions->count(),
@@ -67,6 +68,7 @@ $examData = [
         return [
             'number' => $q->id,
             'question_text' => $q->question_text ?? 'Soal tidak tersedia',
+            'question_file' => $q->question_file ?? null,
             'options' => [
                 $q->option_a ?? 'Opsi A',
                 $q->option_b ?? 'Opsi B',
@@ -125,6 +127,7 @@ public function getQuestions($examId)
                 'title' => $exam->title,
                 'duration' => $exam->duration,
                 'exam_type'=> $exam->exam_type,
+                'questions_files'=> $exam->questions_files,
             ],
             'questions' => $questions,  // Pastikan selalu berupa array
         ],
