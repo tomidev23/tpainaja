@@ -124,101 +124,63 @@ public function getQuestions($examId)
 public function submitResult(Request $request)
 {
     $user = $request->user();
-
-    if (!$user) {
-        return response()->json([
-            'message' => 'Unauthenticated',
-        ], 401);
-    }
+    if (!$user) return response()->json(['message' => 'Unauthenticated'], 401);
 
     $validator = Validator::make($request->all(), [
         'exam_id' => 'required|exists:exams,id',
-        'answers' => 'required|array',
-        'answers.*.question_id' => 'required|exists:questions,id',
-        'answers.*.chosen_option' => 'required|string|in:a,b,c,d,option_a,option_b,option_c,option_d,A,B,C,D',
+        'answers' => 'required|array|min:1',
+        'answers.*.question_id' => 'required|integer|exists:questions,id',
+        'answers.*.chosen_option' => 'required|string|in:a,b,c,d,A,B,C,D,option_a,option_b,option_c,option_d',
     ]);
 
     if ($validator->fails()) {
-        return response()->json([
-            'message' => 'Validation failed',
-            'errors' => $validator->errors(),
-        ], 422);
-    }
-
-    $examId = $request->exam_id;
-    $answers = $request->answers;
-
-    // Enkripsi jawaban peserta
-    $encryptedAnswers = json_encode($answers);
-    
- // ✅ HITUNG SKOR — DENGAN NULL CHECK LENGKAP
-$correctAnswers = 0;
-$totalQuestions = count($answers);
-
-foreach ($answers as $answer) {
-    $questionId = $answer['question_id'] ?? null;
-    
-    // Pastikan question_id valid
-    if (!$questionId || !is_numeric($questionId)) {
-        Log::warning("Invalid question_id: " . json_encode($answer));
-        continue;
-    }
-
-    $question = Question::find($questionId);
-    
-    if (!$question) {
-        Log::warning("Question not found: $questionId");
-        continue;
-    }
-
-    // Normalisasi jawaban
-    $correct = strtoupper(trim($question->jawaban_benar ?? ''));
-    $user = strtoupper(trim($answer['chosen_option'] ?? ''));
-    
-    if (strpos($user, 'OPTION_') === 0) {
-        $user = substr($user, 7, 1);
-    }
-    
-    Log::info("Soal {$question->id}: Benar='$correct', User='$user'");
-    
-    if ($correct === $user && strlen($correct) === 1) {
-        $correctAnswers++;
-    }
-}
-
-$totalScore = $totalQuestions > 0 ? round(($correctAnswers / $totalQuestions) * 100, 2) : 0;
-
-
-    if ($totalQuestions > 0) {
-        $totalScore = round(($correctAnswers / $totalQuestions) * 100, 2);
+        Log::warning('Validation failed', ['errors' => $validator->errors()]);
+        return response()->json(['message' => 'Validation failed', 'errors' => $validator->errors()], 422);
     }
 
     try {
-        $hasilTes = HasilTes::create([
-            'user_id' => $user->id,
-            'exam_id' => $examId,
-            'score' => $totalScore,
-            'correct_answers' => $correctAnswers,
-            'total_questions' => $totalQuestions,
-            'answers' => $encryptedAnswers,
-            'submitted_at' => now(),
-        ]);
+        $examId = $request->exam_id;
+        $answers = $request->answers;
+        $correctAnswers = 0;
+        $totalQuestions = count($answers);
 
-        // ✅ Update is_completed di tabel exams untuk exam ini
-        $exam = Exam::find($examId);
-        if ($exam) {
-            $exam->update(['is_completed' => true]);
+        // Hitung skor dengan aman
+        foreach ($answers as $answer) {
+            $question = Question::find($answer['question_id'] ?? 0);
+            if (!$question) continue;
+
+            $correct = strtoupper(trim($question->jawaban_benar ?? ''));
+            $userAns = strtoupper(trim($answer['chosen_option'] ?? ''));
+
+            if (strpos($userAns, 'OPTION_') === 0) {
+                $userAns = substr($userAns, 7, 1);
+            }
+
+            if ($correct === $userAns && in_array($correct, ['A','B','C','D'])) {
+                $correctAnswers++;
+            }
         }
 
-        Log::info('Exam result submitted', [
-            'user_id' => $user->id,
-            'exam_id' => $examId,
-            'score' => $totalScore,
-            'correct_answers' => $correctAnswers,
-        ]);
+        $totalScore = $totalQuestions ? round(($correctAnswers / $totalQuestions) * 100, 2) : 0;
+
+        // ✅ SIMPAN DENGAN NULL-SAFE
+        $hasilTes = new HasilTes();
+        $hasilTes->user_id = $user->id;
+        $hasilTes->exam_id = $examId;
+        $hasilTes->score = $totalScore;
+        $hasilTes->correct_answers = $correctAnswers;
+        $hasilTes->total_questions = $totalQuestions;
+        $hasilTes->answers = json_encode($answers);
+        $hasilTes->submitted_at = now();
+        $hasilTes->save();
+
+        // Update exam status
+        Exam::where('id', $examId)->update(['is_completed' => true]);
+
+        Log::info('Submit success', ['id' => $hasilTes->id, 'correct' => $correctAnswers]);
 
         return response()->json([
-            'message' => 'Exam submitted successfully',
+            'message' => 'Success',
             'hasil_tes_id' => $hasilTes->id,
             'score' => $totalScore,
             'jawaban_benar' => $correctAnswers,
@@ -226,19 +188,10 @@ $totalScore = $totalQuestions > 0 ? round(($correctAnswers / $totalQuestions) * 
         ], 200);
 
     } catch (\Exception $e) {
-        Log::error('Error submitting exam result: ' . $e->getMessage(), [
-            'exam_id' => $examId,
-            'user_id' => $user->id,
-            'answers_count' => count($answers),
-        ]);
-
-        return response()->json([
-            'message' => 'Error occurred while saving the exam result',
-            'debug' => config('app.debug') ? $e->getMessage() : null,
-        ], 500);
+        Log::error('Submit failed', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
+        return response()->json(['message' => 'Server error'], 500);
     }
 }
-
     /**
      * Get exam detail from exam result
      */ 
