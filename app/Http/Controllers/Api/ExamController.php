@@ -60,6 +60,7 @@ $examData = [
     'score' => 0, // Skor di sini perlu dihitung (misalnya berdasarkan jawaban yang benar)
     'correct_answers' => 0, // Total jawaban benar, dihitung dari hasil tes
     'total_questions' => $questions->count(),
+    'duration' => $exam->duration,
     'submitted_at' => now()->toIso8601String(), // Waktu ujian selesai
     'questions' => $questions->map(function ($q) {
         // Tentukan apakah soal benar atau salah berdasarkan jawaban pengguna (jika sudah ada)
