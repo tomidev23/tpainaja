@@ -118,10 +118,10 @@ public function getQuestions($examId)
     ], 200);
 }
 
-    /**
-     * Submit exam result
-     */
-  public function submitResult(Request $request)
+   /**
+ * Submit exam result
+ */
+public function submitResult(Request $request)
 {
     $user = $request->user();
 
@@ -149,7 +149,8 @@ public function getQuestions($examId)
     $answers = $request->answers;
 
     // Enkripsi jawaban peserta
-$encryptedAnswers = json_encode($answers);
+    $encryptedAnswers = json_encode($answers);
+    
     // Hitung skor
     $totalScore = 0;
     $correctAnswers = 0;
@@ -158,8 +159,19 @@ $encryptedAnswers = json_encode($answers);
     foreach ($answers as $answer) {
         $question = Question::find($answer['question_id']);
         
-        if ($question && $question->jawaban_benar === $answer['chosen_option']) {
-            $correctAnswers++;
+        if ($question) {
+            // ✅ Normalisasi ke uppercase untuk perbandingan case-insensitive
+            $correctAnswer = strtoupper(trim($question->jawaban_benar ?? ''));
+            $userAnswer = strtoupper(trim($answer['chosen_option'] ?? ''));
+            
+            // ✅ Konversi opsi teks ke huruf (jika dikirim "option_a", ubah jadi "A")
+            if (strpos($userAnswer, 'OPTION_') === 0) {
+                $userAnswer = strtoupper(substr($userAnswer, 7, 1)); // ambil huruf setelah "option_"
+            }
+            
+            if ($correctAnswer === $userAnswer) {
+                $correctAnswers++;
+            }
         }
     }
 
@@ -167,45 +179,52 @@ $encryptedAnswers = json_encode($answers);
         $totalScore = round(($correctAnswers / $totalQuestions) * 100, 2);
     }
 
- try {
-    $hasilTes = HasilTes::create([
-        'user_id' => $user->id,
-        'exam_id' => $examId,
-        'score' => $totalScore,
-        'correct_answers' => $correctAnswers,
-        'total_questions' => $totalQuestions,
-        'answers' => $encryptedAnswers,
-        'submitted_at' => now(),
-    ]);
+    try {
+        $hasilTes = HasilTes::create([
+            'user_id' => $user->id,
+            'exam_id' => $examId,
+            'score' => $totalScore,
+            'correct_answers' => $correctAnswers,
+            'total_questions' => $totalQuestions,
+            'answers' => $encryptedAnswers,
+            'submitted_at' => now(),
+        ]);
 
-    // ✅ Update is_completed di tabel exams untuk exam ini
-   $exam = Exam::find($examId);
-if ($exam) {
-    $exam->update(['is_completed' => true]); // ✅ pakai update()
+        // ✅ Update is_completed di tabel exams untuk exam ini
+        $exam = Exam::find($examId);
+        if ($exam) {
+            $exam->update(['is_completed' => true]);
+        }
+
+        Log::info('Exam result submitted', [
+            'user_id' => $user->id,
+            'exam_id' => $examId,
+            'score' => $totalScore,
+            'correct_answers' => $correctAnswers,
+        ]);
+
+        return response()->json([
+            'message' => 'Exam submitted successfully',
+            'hasil_tes_id' => $hasilTes->id,
+            'score' => $totalScore,
+            'jawaban_benar' => $correctAnswers,
+            'total_questions' => $totalQuestions,
+        ], 200);
+
+    } catch (\Exception $e) {
+        Log::error('Error submitting exam result: ' . $e->getMessage(), [
+            'exam_id' => $examId,
+            'user_id' => $user->id,
+            'answers_count' => count($answers),
+        ]);
+
+        return response()->json([
+            'message' => 'Error occurred while saving the exam result',
+            'debug' => config('app.debug') ? $e->getMessage() : null,
+        ], 500);
+    }
 }
-
-    Log::info('Exam result submitted', [
-        'user_id' => $user->id,
-        'exam_id' => $examId,
-        'score' => $totalScore,
-    ]);
-
-    return response()->json([
-        'message' => 'Exam submitted successfully',
-        'hasil_tes_id' => $hasilTes->id,
-        'score' => $totalScore,
-        'jawaban_benar' => $correctAnswers,
-        'total_questions' => $totalQuestions,
-    ], 200);
-
-} catch (\Exception $e) {
-    Log::error('Error submitting exam result: ' . $e->getMessage());
-
-    return response()->json([
-        'message' => 'Error occurred while saving the exam result',
-    ], 500);
-}
-}
+    
 
 public function getExamDetail($hasilTesId)
 {
