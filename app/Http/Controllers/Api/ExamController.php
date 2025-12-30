@@ -198,21 +198,66 @@ public function submitResult(Request $request)
 
 public function getExamDetail($hasilTesId)
 {
-    // Ambil hasil tes berdasarkan ID
-    $hasilTes = HasilTes::with('exam') // Memuat relasi 'exam' yang tepat
+    $user = Auth::user();
+    if (!$user) return response()->json(['message' => 'Unauthenticated'], 401);
+
+    // ✅ Ambil hasil tes lengkap dengan exam & questions
+    $hasilTes = HasilTes::with(['exam.questions'])
         ->where('id', $hasilTesId)
+        ->where('user_id', $user->id)
         ->first();
 
-    if (!$hasilTes) {
-        return response()->json([
-            'message' => 'Hasil tes tidak ditemukan',
-        ], 404);
+    if (!$hasilTes) return response()->json(['message' => 'Not found'], 404);
+
+    // ✅ Decode jawaban user
+    $answers = is_string($hasilTes->answers) 
+        ? json_decode($hasilTes->answers, true) 
+        : $hasilTes->answers;
+
+    // ✅ Bangun detail soal dengan jawaban user
+    $questionsData = [];
+    foreach ($hasilTes->exam->questions as $index => $q) {
+        $userAns = collect($answers)->firstWhere('question_id', $q->id);
+        $userOption = $userAns['chosen_option'] ?? '';
+
+        // Normalisasi ke huruf
+        $userLetter = strtoupper(trim($userOption));
+        if (strpos($userLetter, 'OPTION_') === 0) {
+            $userLetter = substr($userLetter, 7, 1);
+        }
+
+        // Cari index opsi (A=0, B=1, C=2, D=3)
+        $userIndex = ['A','B','C','D'][array_search($userLetter, ['A','B','C','D'])] ?? null;
+        $correctIndex = ['A','B','C','D'][array_search(strtoupper($q->jawaban_benar ?? 'A'), ['A','B','C','D'])] ?? 0;
+
+        $questionsData[] = [
+            'number' => $index + 1,
+            'question_text' => $q->question_text,
+            'options' => [
+                $q->option_a,
+                $q->option_b,
+                $q->option_c,
+                $q->option_d,
+            ],
+            'correct_option_index' => $correctIndex,
+            'user_answer_index' => $userIndex,
+            'is_correct' => $userLetter === strtoupper($q->jawaban_benar ?? ''),
+        ];
     }
 
-    // Kembalikan data ujian terkait dengan hasil tes
     return response()->json([
-        'status' => 'success',
-        'data' => $hasilTes->exam, // Kembalikan data exam yang terkait
+        'data' => [
+            'id' => $hasilTes->id,
+            'title' => $hasilTes->exam->nama_ujian ?? 'Ujian',
+            'exam_logo_url' => $hasilTes->exam->logo 
+                ? "https://tpainaja-main-yyhqxv.laravel.cloud/storage/{$hasilTes->exam->logo}"
+                : '',
+            'score' => (int) $hasilTes->score,
+            'correct_answers' => (int) $hasilTes->correct_answers,
+            'total_questions' => (int) $hasilTes->total_questions,
+            'submitted_at' => $hasilTes->submitted_at?->toIso8601String() ?? '',
+            'questions' => $questionsData,
+        ],
     ], 200);
 }
 
