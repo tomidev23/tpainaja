@@ -201,13 +201,18 @@ public function getExamDetail($hasilTesId)
     $user = Auth::user();
     if (!$user) return response()->json(['message' => 'Unauthenticated'], 401);
 
-    $hasilTes = HasilTes::with(['exam.questions'])
-        ->where('id', $hasilTesId)
-        ->where('user_id', $user->id)
-        ->first();
+    $hasilTes = HasilTes::find($hasilTesId);
+    
+    // ✅ Pastikan hasil tes milik user ini
+    if (!$hasilTes || $hasilTes->user_id != $user->id) {
+        return response()->json(['message' => 'Not found'], 404);
+    }
 
-    if (!$hasilTes) {
-        return response()->json(['message' => 'Hasil tes tidak ditemukan'], 404);
+    // ✅ Ambil exam terpisah (hindari relasi null)
+    $exam = Exam::with('questions')->find($hasilTes->exam_id);
+    
+    if (!$exam) {
+        return response()->json(['message' => 'Exam tidak ditemukan'], 404);
     }
 
     // ✅ Decode jawaban user
@@ -217,36 +222,27 @@ public function getExamDetail($hasilTesId)
 
     // ✅ Bangun data soal
     $questionsData = [];
-    foreach ($hasilTes->exam->questions as $index => $q) {
-        // Cari jawaban user untuk soal ini
-        $userAnswer = collect($answers)->firstWhere('question_id', $q->id);
-        
-        // Normalisasi jawaban user
-        $userLetter = '';
-        if ($userAnswer && isset($userAnswer['chosen_option'])) {
-            $userLetter = strtoupper(trim($userAnswer['chosen_option']));
-            if (strpos($userLetter, 'OPTION_') === 0) {
-                $userLetter = substr($userLetter, 7, 1);
-            }
+    foreach ($exam->questions as $index => $q) {
+        $userAns = collect($answers)->firstWhere('question_id', $q->id);
+        $userLetter = $userAns['chosen_option'] ?? '';
+        $userLetter = strtoupper(trim($userLetter));
+        if (strpos($userLetter, 'OPTION_') === 0) {
+            $userLetter = substr($userLetter, 7, 1);
         }
 
-        // Ambil opsi
-        $options = [
-            $q->option_a ?: 'Opsi A',
-            $q->option_b ?: 'Opsi B',
-            $q->option_c ?: 'Opsi C',
-            $q->option_d ?: 'Opsi D',
-        ];
-
-        // Tentukan index benar dan user
         $correctLetter = strtoupper($q->jawaban_benar ?? 'A');
-        $correctIndex = ['A','B','C','D'][array_search($correctLetter, ['A','B','C','D'])] ?? 0;
-        $userIndex = ['A','B','C','D'][array_search($userLetter, ['A','B','C','D'])] ?? null;
+        $correctIndex = array_search($correctLetter, ['A','B','C','D']) ?: 0;
+        $userIndex = array_search($userLetter, ['A','B','C','D']);
 
         $questionsData[] = [
             'number' => $index + 1,
             'question_text' => $q->question_text ?: 'Soal tidak tersedia',
-            'options' => $options,
+            'options' => [
+                $q->option_a ?: 'Opsi A',
+                $q->option_b ?: 'Opsi B',
+                $q->option_c ?: 'Opsi C',
+                $q->option_d ?: 'Opsi D',
+            ],
             'correct_option_index' => $correctIndex,
             'user_answer_index' => $userIndex,
             'is_correct' => $userLetter === $correctLetter,
@@ -256,9 +252,9 @@ public function getExamDetail($hasilTesId)
     return response()->json([
         'data' => [
             'id' => $hasilTes->id,
-            'title' => $hasilTes->exam->nama_ujian ?? 'Ujian',
-            'exam_logo_url' => $hasilTes->exam->logo 
-                ? "https://tpainaja-main-yyhqxv.laravel.cloud/storage/{$hasilTes->exam->logo}"
+            'title' => $exam->nama_ujian ?? 'Ujian',
+            'exam_logo_url' => $exam->logo 
+                ? "https://tpainaja-main-yyhqxv.laravel.cloud/storage/{$exam->logo}"
                 : '',
             'score' => (int) $hasilTes->score,
             'correct_answers' => (int) $hasilTes->correct_answers,
