@@ -47,35 +47,43 @@ public function show($id)
         }
 
         // Ambil soal yang aktif
-        $questions = Question::where('exam_id', $exam->id)
-            ->where('aktif', 1)
-            ->get();
+       // Ambil soal yang aktif
+$questions = Question::where('exam_id', $exam->id)
+    ->where('aktif', 1)
+    ->get();
 
-        // Bangun data sesuai dengan kebutuhan frontend
-        $examData = [
-            'id' => $exam->id,
-            'nama_ujian' => $exam->nama_ujian,
-            'exam_logo_url' => $exam->logo ? url("storage/{$exam->logo}") : '',
-            'score' => 0, // Belum ada skor di sini, bisa ditambahkan jika perlu
-            'correct_answers' => 0, // Belum ada informasi jawaban benar, bisa ditambahkan jika perlu
-            'total_questions' => $questions->count(),
-            'submitted_at' => now()->toIso8601String(), // Waktu saat ini, bisa diganti sesuai dengan kebutuhan
-            'questions' => $questions->map(function ($q) {
-                return [
-                    'number' => $q->id,
-                    'question_text' => $q->question_text ?? 'Soal tidak tersedia',
-                    'options' => [
-                        $q->option_a ?? 'Opsi A',
-                        $q->option_b ?? 'Opsi B',
-                        $q->option_c ?? 'Opsi C',
-                        $q->option_d ?? 'Opsi D',
-                    ],
-                    'correct_option_index' => array_search($q->jawaban_benar, ['A', 'B', 'C', 'D']),
-                    'user_answer_index' => null, // Ini bisa diisi nanti setelah user mengirim jawaban
-                    'is_correct' => false, // Ini juga bisa dihitung setelah validasi jawaban
-                ];
-            })->toArray(),
+// Bangun data untuk ujian
+$examData = [
+    'id' => $exam->id,
+    'nama_ujian' => $exam->nama_ujian,
+    'exam_logo_url' => $exam->logo ? url("storage/{$exam->logo}") : '',
+    'score' => 0, // Skor di sini perlu dihitung (misalnya berdasarkan jawaban yang benar)
+    'correct_answers' => 0, // Total jawaban benar, dihitung dari hasil tes
+    'total_questions' => $questions->count(),
+    'submitted_at' => now()->toIso8601String(), // Waktu ujian selesai
+    'questions' => $questions->map(function ($q) {
+        // Tentukan apakah soal benar atau salah berdasarkan jawaban pengguna (jika sudah ada)
+        return [
+            'number' => $q->id,
+            'question_text' => $q->question_text ?? 'Soal tidak tersedia',
+            'options' => [
+                $q->option_a ?? 'Opsi A',
+                $q->option_b ?? 'Opsi B',
+                $q->option_c ?? 'Opsi C',
+                $q->option_d ?? 'Opsi D',
+            ],
+            'correct_option_index' => array_search($q->jawaban_benar, ['A', 'B', 'C', 'D']),
+            'user_answer_index' => null, // Jika data jawaban pengguna ada, set di sini
+            'is_correct' => false, // Tentukan apakah jawabannya benar atau salah
         ];
+    })->toArray(),
+];
+
+return response()->json([
+    'status' => 'success',
+    'data' => $examData,
+]);
+
 
         return response()->json([
             'status' => 'success',
