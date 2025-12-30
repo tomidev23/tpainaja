@@ -14,6 +14,7 @@ class Exam extends Model
     protected $fillable = [
         'nama_ujian',
         'question_count',
+        'questions_files',
         'weight',
         'duration',
         'exam_type',

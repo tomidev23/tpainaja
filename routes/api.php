@@ -17,7 +17,7 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::post('/auth/google', [AuthController::class, 'googleLogin']);
 
 
-    Route::get('/exam', [ExamController::class, 'index']);
+Route::get('/exam', [ExamController::class, 'index']);
 Route::get('/exam/{id}', [ExamController::class, 'show']);
 
 
