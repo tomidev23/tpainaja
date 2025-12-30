@@ -27,7 +27,7 @@ $userAnswersMap = collect($answersArray)->keyBy('question_id');
     return response()->json([
         'data' => [
             'id' => $history->id,
-            'title' => $history->exam?->title ?? 'Ujian',
+            'nama_ujian' => $history->exam?->nama_ujian ?? 'Ujian',
             'score' => (int) $history->score,
             'jawaban_benar' => (int) $history->jawaban_benar,
             'total_questions' => (int) $history->total_questions,
