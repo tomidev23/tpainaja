@@ -206,41 +206,50 @@ public function getExamDetail($hasilTesId)
         ->where('user_id', $user->id)
         ->first();
 
-    if (!$hasilTes) return response()->json(['message' => 'Not found'], 404);
+    if (!$hasilTes) {
+        return response()->json(['message' => 'Hasil tes tidak ditemukan'], 404);
+    }
 
     // ✅ Decode jawaban user
     $answers = is_string($hasilTes->answers) 
         ? json_decode($hasilTes->answers, true) 
-        : $hasilTes->answers;
+        : [];
 
-    // ✅ Bangun data soal dengan jawaban user
+    // ✅ Bangun data soal
     $questionsData = [];
     foreach ($hasilTes->exam->questions as $index => $q) {
-        $userAns = collect($answers)->firstWhere('question_id', $q->id);
-        $userOption = $userAns['chosen_option'] ?? '';
-
-        // Normalisasi ke huruf
-        $userLetter = strtoupper(trim($userOption));
-        if (strpos($userLetter, 'OPTION_') === 0) {
-            $userLetter = substr($userLetter, 7, 1);
+        // Cari jawaban user untuk soal ini
+        $userAnswer = collect($answers)->firstWhere('question_id', $q->id);
+        
+        // Normalisasi jawaban user
+        $userLetter = '';
+        if ($userAnswer && isset($userAnswer['chosen_option'])) {
+            $userLetter = strtoupper(trim($userAnswer['chosen_option']));
+            if (strpos($userLetter, 'OPTION_') === 0) {
+                $userLetter = substr($userLetter, 7, 1);
+            }
         }
 
-        // Cari index opsi (A=0, B=1, C=2, D=3)
-        $userIndex = array_search($userLetter, ['A','B','C','D']);
-        $correctIndex = array_search(strtoupper($q->jawaban_benar ?? 'A'), ['A','B','C','D']);
+        // Ambil opsi
+        $options = [
+            $q->option_a ?: 'Opsi A',
+            $q->option_b ?: 'Opsi B',
+            $q->option_c ?: 'Opsi C',
+            $q->option_d ?: 'Opsi D',
+        ];
+
+        // Tentukan index benar dan user
+        $correctLetter = strtoupper($q->jawaban_benar ?? 'A');
+        $correctIndex = ['A','B','C','D'][array_search($correctLetter, ['A','B','C','D'])] ?? 0;
+        $userIndex = ['A','B','C','D'][array_search($userLetter, ['A','B','C','D'])] ?? null;
 
         $questionsData[] = [
             'number' => $index + 1,
-            'question_text' => $q->question_text,
-            'options' => [
-                $q->option_a,
-                $q->option_b,
-                $q->option_c,
-                $q->option_d,
-            ],
-            'correct_option_index' => $correctIndex !== false ? $correctIndex : 0,
-            'user_answer_index' => $userIndex !== false ? $userIndex : null,
-            'is_correct' => $userLetter === strtoupper($q->jawaban_benar ?? ''),
+            'question_text' => $q->question_text ?: 'Soal tidak tersedia',
+            'options' => $options,
+            'correct_option_index' => $correctIndex,
+            'user_answer_index' => $userIndex,
+            'is_correct' => $userLetter === $correctLetter,
         ];
     }
 
@@ -253,7 +262,7 @@ public function getExamDetail($hasilTesId)
                 : '',
             'score' => (int) $hasilTes->score,
             'correct_answers' => (int) $hasilTes->correct_answers,
-            'total_questions' => (int) $hasilTes->total_questions,
+            'total_questions' => count($questionsData),
             'submitted_at' => $hasilTes->submitted_at?->toIso8601String() ?? '',
             'questions' => $questionsData,
         ],
