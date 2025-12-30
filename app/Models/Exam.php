@@ -21,10 +21,11 @@ class Exam extends Model
         'logo',
     ];
 
-    public function questions()
-    {
-        return $this->hasMany(Question::class, 'exam_id');
-    }
+   public function questions()
+{
+    return $this->hasMany(Question::class);
+}
+
 
     // Relasi dengan HasilTes
     public function hasilTes()
