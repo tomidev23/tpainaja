@@ -151,30 +151,38 @@ public function submitResult(Request $request)
     // Enkripsi jawaban peserta
     $encryptedAnswers = json_encode($answers);
     
-   // ✅ HITUNG SKOR — VERSI FINAL (100% WORK)
+ // ✅ HITUNG SKOR — DENGAN NULL CHECK LENGKAP
 $correctAnswers = 0;
 $totalQuestions = count($answers);
 
 foreach ($answers as $answer) {
-    // Ambil soal dengan select eksplisit (hindari hidden field)
-    $question = Question::select('id', 'jawaban_benar')
-        ->where('id', $answer['question_id'])
-        ->first();
+    $questionId = $answer['question_id'] ?? null;
     
-    if ($question && !empty($question->jawaban_benar)) {
-        // Normalisasi jawaban benar: ambil HANYA huruf A-D
-        $correct = preg_replace('/[^A-D]/i', '', strtoupper($question->jawaban_benar));
-        
-        // Normalisasi jawaban user
-        $userRaw = $answer['chosen_option'] ?? '';
-        $user = preg_replace('/[^A-D]/i', '', strtoupper($userRaw));
-        
-        // Log untuk debug (hapus setelah work)
-        Log::info("Soal {$question->id}: DB='{$question->jawaban_benar}', Normalized='$correct', User='$user'");
-        
-        if ($correct === $user && strlen($correct) === 1) {
-            $correctAnswers++;
-        }
+    // Pastikan question_id valid
+    if (!$questionId || !is_numeric($questionId)) {
+        Log::warning("Invalid question_id: " . json_encode($answer));
+        continue;
+    }
+
+    $question = Question::find($questionId);
+    
+    if (!$question) {
+        Log::warning("Question not found: $questionId");
+        continue;
+    }
+
+    // Normalisasi jawaban
+    $correct = strtoupper(trim($question->jawaban_benar ?? ''));
+    $user = strtoupper(trim($answer['chosen_option'] ?? ''));
+    
+    if (strpos($user, 'OPTION_') === 0) {
+        $user = substr($user, 7, 1);
+    }
+    
+    Log::info("Soal {$question->id}: Benar='$correct', User='$user'");
+    
+    if ($correct === $user && strlen($correct) === 1) {
+        $correctAnswers++;
     }
 }
 
@@ -230,7 +238,10 @@ $totalScore = $totalQuestions > 0 ? round(($correctAnswers / $totalQuestions) * 
         ], 500);
     }
 }
-    
+
+    /**
+     * Get exam detail from exam result
+     */ 
 
 public function getExamDetail($hasilTesId)
 {
